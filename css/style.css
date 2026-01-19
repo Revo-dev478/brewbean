@@ -12319,3 +12319,16 @@ img {
   animation: hideLoader 5s forwards;
   pointer-events: none; /* Ensure it doesn't block clicks even while fading */
 }
+
+/* FIX: Mobile Slider Height & Scroll */
+@media (max-width: 767.98px) {
+  .home-slider, .home-slider .slider-item {
+    height: auto !important;
+    min-height: 100vh; /* Changed from fixed px to vh to fill screen but allow scroll */
+  }
+  
+  /* Prevent scroll locking */
+  .owl-carousel {
+    touch-action: pan-y !important;
+  }
+}

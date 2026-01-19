@@ -27,6 +27,7 @@
 
 
 	var fullHeight = function() {
+        if (isMobile) return; 
 
 		$('.js-fullheight').css('height', $(window).height());
 		$(window).resize(function(){

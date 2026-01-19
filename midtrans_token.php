@@ -68,8 +68,30 @@ mysqli_query($koneksi, "
 ");
 
 /* ==========================
-   SKIP INSERT ITEMS (table checkout_item tidak ada di DB)
+   INSERT ITEMS TO DB
    ========================== */
+$cart_query = mysqli_query($koneksi, "
+    SELECT k.qty, p.nama_product, p.harga, p.id_product 
+    FROM tabel_keranjang k 
+    JOIN tabel_product p ON k.id_product = p.id_product 
+    WHERE k.id_user = '$id_user'
+");
+
+if ($cart_query) {
+    while ($item = mysqli_fetch_assoc($cart_query)) {
+        $pName = mysqli_real_escape_string($koneksi, $item['nama_product']);
+        $pPrice = $item['harga'];
+        $pQty = $item['qty'];
+        $pSubtotal = $pPrice * $pQty;
+        $pId = $item['id_product'];
+
+        // Insert to checkout_item
+        mysqli_query($koneksi, "
+            INSERT INTO checkout_item (order_id, id_product, product_name, price, quantity, subtotal)
+            VALUES ('$order_id', '$pId', '$pName', '$pPrice', '$pQty', '$pSubtotal')
+        ");
+    }
+}
 
 /* ==========================
    PAYLOAD MIDTRANS

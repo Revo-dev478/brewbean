@@ -725,10 +725,37 @@ if ($user_phone != '' && substr($user_phone, 0, 1) != '0') {
             // =========================
             function prosesCheckout() {
                 // Validasi form
-                if (!$('#nama').val() || !$('#phone').val() || !$('#email').val() ||
-                    !$('#provinsi').val() || !$('#kota').val() || !$('#kecamatan').val() ||
-                    !$('#kodepos').val() || !$('#alamat').val() || !$('#shipping_cost').val()) {
-                    Swal.fire('Perhatian', 'Lengkapi semua form dan pilih layanan pengiriman', 'warning');
+                // Validasi form detil
+                let emptyFields = [];
+                if (!$('#nama').val()) emptyFields.push('Nama Penerima');
+                if (!$('#phone').val()) emptyFields.push('No. Telepon');
+                if (!$('#email').val()) emptyFields.push('Email');
+                if (!$('#provinsi').val()) emptyFields.push('Provinsi');
+                if (!$('#kota').val()) emptyFields.push('Kota');
+                if (!$('#kecamatan').val()) emptyFields.push('Kecamatan');
+                if (!$('#kodepos').val()) emptyFields.push('Kode Pos');
+                if (!$('#alamat').val()) emptyFields.push('Alamat');
+
+                // Debug values to console
+                console.log('Form Values:', {
+                    nama: $('#nama').val(),
+                    phone: $('#phone').val(),
+                    email: $('#email').val(),
+                    provinsi: $('#provinsi').val(),
+                    kota: $('#kota').val(),
+                    kecamatan: $('#kecamatan').val(),
+                    kodepos: $('#kodepos').val(),
+                    alamat: $('#alamat').val(),
+                    shipping_cost: $('#shipping_cost').val()
+                });
+
+                if (emptyFields.length > 0) {
+                    Swal.fire('Perhatian', 'Mohon lengkapi: ' + emptyFields.join(', '), 'warning');
+                    return;
+                }
+
+                if (!$('#shipping_cost').val() || $('#shipping_cost').val() == 0) {
+                    Swal.fire('Perhatian', 'Silakan pilih layanan pengiriman (klik salah satu opsi ongkir)', 'warning');
                     return;
                 }
 

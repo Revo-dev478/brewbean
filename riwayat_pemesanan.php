@@ -373,9 +373,35 @@ unset($p);
                                     <div class="col-md-7">
                                         <div class="order-items">
                                             <?php
-                                            // Note: checkout_item table tidak ada di DB production
-                                            // Tampilkan placeholder saja
+                                            // Fetch real items from checkout_item table
+                                            $oid = mysqli_real_escape_string($koneksi, $item['order_id']);
+                                            $q_items = mysqli_query($koneksi, "SELECT ci.*, p.gambar FROM checkout_item ci LEFT JOIN tabel_product p ON ci.id_product = p.id_product WHERE ci.order_id = '$oid'");
+
+                                            if (mysqli_num_rows($q_items) > 0):
+                                                while ($detail = mysqli_fetch_assoc($q_items)):
+                                                    $styleBg = !empty($detail['gambar'])
+                                                        ? "background-image: url('images/" . $detail['gambar'] . "'); background-size: cover; background-position: center;"
+                                                        : "background: rgba(196,155,99,0.2); display: flex; align-items: center; justify-content: center;";
                                             ?>
+                                                    <div class="item-row d-flex align-items-center">
+                                                        <div class="img mr-3" style="width: 60px; height: 60px; border-radius: 8px; <?= $styleBg ?>">
+                                                            <?php if (empty($detail['gambar'])): ?>
+                                                                <span class="ion-ios-cube" style="font-size: 24px; color: #c49b63;"></span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <div class="text">
+                                                            <div class="item-name">
+                                                                <?= htmlspecialchars($detail['product_name']) ?>
+                                                                <span style="font-size: 12px; color: #c49b63;">(x<?= $detail['quantity'] ?>)</span>
+                                                            </div>
+                                                            <div class="item-meta">Rp <?= number_format($detail['subtotal'], 0, ',', '.') ?></div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                endwhile;
+                                            else:
+                                                // Fallback for old orders (Legacy)
+                                                ?>
                                                 <div class="item-row d-flex align-items-center">
                                                     <div class="img mr-3" style="background: rgba(196,155,99,0.2); width: 60px; height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                                         <span class="ion-ios-cube" style="font-size: 24px; color: #c49b63;"></span>
@@ -385,6 +411,7 @@ unset($p);
                                                         <div class="item-meta">Total: Rp <?= number_format($item['gross_amount'], 0, ',', '.') ?></div>
                                                     </div>
                                                 </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
 
