@@ -12,19 +12,20 @@ if (!isset($_SESSION['id_user'])) {
 $id_user = $_SESSION['id_user'];
 
 // --- PERBAIKAN UTAMA: HITUNG TOTAL DARI DATABASE ---
-$query_keranjang = "SELECT k.qty, p.nama_product, p.harga, p.berat, p.gambar 
+$query_keranjang = "SELECT k.qty, p.nama_product, p.harga, p.gambar 
                     FROM tabel_keranjang k 
                     JOIN tabel_product p ON k.id_product = p.id_product 
                     WHERE k.id_user = '$id_user'";
 $result_keranjang = mysqli_query($koneksi, $query_keranjang);
 
 $subtotal_belanja = 0;
-$total_berat = 0;
+$total_qty = 0;
 while ($row = mysqli_fetch_assoc($result_keranjang)) {
     $subtotal_belanja += ($row['harga'] * $row['qty']);
-    $total_berat += ($row['berat'] * $row['qty']);
+    $total_qty += $row['qty'];
 }
-// Default berat jika 0
+// Default berat: 250g per item (karena kolom berat tidak ada di DB)
+$total_berat = $total_qty * 250;
 if ($total_berat == 0) $total_berat = 1000;
 
 // Jika keranjang kosong, lempar balik ke menu
