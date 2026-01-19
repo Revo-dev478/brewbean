@@ -10,11 +10,8 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $id_product = (int) $_GET['id'];
 
-// Fetch product details
-$query = "SELECT p.*, s.nama as nama_penjual 
-          FROM tabel_product p 
-          LEFT JOIN tabel_penjual s ON p.id_penjual = s.id 
-          WHERE p.id_product = $id_product";
+// Fetch product details (simplified query - no seller join)
+$query = "SELECT * FROM tabel_product WHERE id_product = $id_product";
 $data = mysqli_query($koneksi, $query);
 
 if (!$data || mysqli_num_rows($data) === 0) {
@@ -23,7 +20,12 @@ if (!$data || mysqli_num_rows($data) === 0) {
 }
 
 $product = mysqli_fetch_assoc($data);
+
+// Set default values for columns that might not exist
+$product['berat'] = isset($product['berat']) ? $product['berat'] : 250;
+$product['nama_penjual'] = 'Official Store';
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 
