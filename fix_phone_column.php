@@ -1,26 +1,16 @@
 <?php
-require 'config.php';
+require_once 'config.php';
 
-echo "Starting Database Fix...\n";
+// Script untuk mengubah tipe data kolom phone menjadi VARCHAR
+// Agar bisa menampung nomor telepon yang panjang (lebih dari angka 2 Milyar)
 
-// 1. Ubah tipe kolom dari INT ke VARCHAR agar bisa menampung '08...' tanpa limit integer
-$sql_alter = "ALTER TABLE tabel_user MODIFY phone VARCHAR(25) NOT NULL";
-if (mysqli_query($koneksi, $sql_alter)) {
-    echo "[SUCCESS] Kolom 'phone' berhasil diubah menjadi VARCHAR.\n";
+$sql = "ALTER TABLE tabel_user MODIFY phone VARCHAR(20) NOT NULL";
+
+if ($koneksi->query($sql) === TRUE) {
+    echo "<h1>Berhasil!</h1>";
+    echo "<p>Kolom 'phone' pada 'tabel_user' berhasil diubah menjadi VARCHAR(20).</p>";
+    echo "<p>Silakan coba daftar kembali.</p>";
 } else {
-    echo "[ERROR] Gagal mengubah kolom: " . mysqli_error($koneksi) . "\n";
+    echo "<h1>Gagal</h1>";
+    echo "<p>Error: " . $koneksi->error . "</p>";
 }
-
-// 2. Perbaiki data yang sudah rusak (2147483647)
-// Kita ubah menjadi data dummy '081234567890' agar user tidak melihat angka aneh
-// User harus mengupdate kembali nomor aslinya nanti
-$sql_update = "UPDATE tabel_user SET phone = '081234567890' WHERE phone = '2147483647'";
-if (mysqli_query($koneksi, $sql_update)) {
-    $affected = mysqli_affected_rows($koneksi);
-    echo "[SUCCESS] Berhasil memperbaiki $affected data user yang corrupt.\n";
-} else {
-    echo "[ERROR] Gagal mengupdate data user: " . mysqli_error($koneksi) . "\n";
-}
-
-echo "Selesai.\n";
-?>
