@@ -1,9 +1,12 @@
 <?php
-// Koneksi ke database
-$host = 'localhost';
-$dbname = 'db_brewbeans';
-$username = 'root'; // sesuaikan dengan username database Anda
-$password = ''; // sesuaikan dengan password database Anda
+// Load environment variables
+require_once __DIR__ . '/../env_loader.php';
+
+// Koneksi ke database menggunakan environment variables
+$host = env('DB_HOST', '127.0.0.1');
+$dbname = env('DB_DATABASE', 'db_brewbeans');
+$username = env('DB_USERNAME', 'root');
+$password = env('DB_PASSWORD', '');
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
