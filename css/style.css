@@ -12245,9 +12245,12 @@ img {
 @media (max-width: 767.98px) {
   /* Fix slider height */
   .home-slider .slider-item {
-    height: auto;
+    height: auto !important;
     min-height: 100vh;
   }
+  
+  /* ... existing code ... */
+
 
   .slider-text {
     min-height: 80vh;
@@ -12303,4 +12306,16 @@ img {
   .wrap {
     flex-wrap: wrap;
   }
+}
+
+/* Failsafe: Hide loader automatically after 5 seconds if JS fails */
+@keyframes hideLoader {
+  0% { visibility: visible; opacity: 1; }
+  80% { visibility: visible; opacity: 1; }
+  100% { visibility: hidden; opacity: 0; }
+}
+
+#ftco-loader.show {
+  animation: hideLoader 5s forwards;
+  pointer-events: none; /* Ensure it doesn't block clicks even while fading */
 }
