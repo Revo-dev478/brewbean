@@ -5,8 +5,9 @@
  * FIXED | SAFE | NO UI CHANGE
  */
 
-error_reporting(0);
-ini_set('display_errors', 0);
+// Enable error reporting untuk debugging (disable di production nanti)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
 
@@ -67,32 +68,8 @@ mysqli_query($koneksi, "
 ");
 
 /* ==========================
-   INSERT ITEMS KE TABLE CHECKOUT_ITEM
+   SKIP INSERT ITEMS (table checkout_item tidak ada di DB)
    ========================== */
-// Ambil item dari keranjang user saat ini
-$cartQuery = mysqli_query($koneksi, "
-    SELECT k.qty, k.subtotal, p.nama_product, p.harga 
-    FROM tabel_keranjang k 
-    JOIN tabel_product p ON k.id_product = p.id_product 
-    WHERE k.id_user = '$id_user'
-");
-
-while ($item = mysqli_fetch_assoc($cartQuery)) {
-    $pName = mysqli_real_escape_string($koneksi, $item['nama_product']);
-    $pPrice = (int)$item['harga'];
-    $pQty = (int)$item['qty'];
-    $pSubtotal = (int)$item['subtotal']; // Ini biasanya harga * qty, tapi kita pakai yang dari DB
-
-    // Fallback subtotal calculation if needed
-    if ($pSubtotal == 0 || $pSubtotal != $pPrice * $pQty) {
-        $pSubtotal = $pPrice * $pQty;
-    }
-
-    mysqli_query($koneksi, "
-        INSERT INTO checkout_item (order_id, product_name, price, quantity, subtotal)
-        VALUES ('$order_id', '$pName', '$pPrice', '$pQty', '$pSubtotal')
-    ");
-}
 
 /* ==========================
    PAYLOAD MIDTRANS
@@ -163,11 +140,12 @@ if ($httpCode == 201) {
     $items_json = json_encode($params['item_details']);
     $items_escaped = mysqli_real_escape_string($koneksi, $items_json);
 
+    // Note: detail_item column mungkin tidak ada, gunakan column yang ada saja
     $query_insert = "
         INSERT INTO transaksi_midtrans (
-            order_id, id_user, gross_amount, payment_type, transaction_status, transaction_time, detail_item
+            order_id, id_user, gross_amount, payment_type, transaction_status, transaction_time
         ) VALUES (
-            '$order_id', '$id_user', '$gross_amount', 'midtrans', 'pending', '$curr_time', '$items_escaped'
+            '$order_id', '$id_user', '$gross_amount', 'midtrans', 'pending', '$curr_time'
         )
     ";
 
