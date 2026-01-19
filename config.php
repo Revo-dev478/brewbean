@@ -2,6 +2,15 @@
 // Load environment variables
 require_once __DIR__ . '/env_loader.php';
 
+// Set session lifetime to 1 day
+ini_set('session.gc_maxlifetime', 86400);
+session_set_cookie_params(86400);
+
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 $host = env('DB_HOST', 'localhost');
 $username = env('DB_USERNAME', 'root');
 $password = env('DB_PASSWORD', '');

@@ -87,42 +87,13 @@ $siteTitle = "Coffee - Brewbeans Coffee Bandung";
 	<?php include 'partials/navbar.php'; ?>
 
 
-	<section class="home-slider owl-carousel">
+	<section class="home-slider owl-carousel d-none d-md-block">
 		<div class="slider-item" style="background-image: url(images/bg_1.jpg);">
 			<div class="overlay"></div>
 			<div class="container">
 				<div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
 
 					<div class="col-md-8 col-sm-12 text-center ftco-animate">
-						<span class="subheading">Wel</span>
-						<h1 class="mb-4">BREWBEANS COFFEE BANDUNG</h1>
-						<p class="mb-4 mb-md-5">A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
-					</div>
-
-				</div>
-			</div>
-		</div>
-
-		<div class="slider-item" style="background-image: url(images/bg_2.jpg);">
-			<div class="overlay"></div>
-			<div class="container">
-				<div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
-
-					<div class="col-md-8 col-sm-12 text-center ftco-animate">
-						<span class="subheading">Welcome</span>
-						<h1 class="mb-4">BREWBEANS COFFEE BANDUNG</h1>
-						<p class="mb-4 mb-md-5">A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
-					</div>
-
-				</div>
-			</div>
-		</div>
-
-		<div class="slider-item" style="background-image: url(images/bg_3.jpg);">
-			<div class="overlay"></div>
-			<div class="container">
-				<div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
-					<div class="col-md-8 col-sm-12 text-center ftco-animate">
 						<span class="subheading">Welcome</span>
 						<h1 class="mb-4">BREWBEANS COFFEE BANDUNG</h1>
 						<p class="mb-4 mb-md-5">A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
@@ -130,6 +101,51 @@ $siteTitle = "Coffee - Brewbeans Coffee Bandung";
 				</div>
 			</div>
 		</div>
+		<!-- ... other slider items ... -->
+	</section>
+
+	<!-- Mobile Hero Static -->
+	<section class="mobile-hero d-md-none" style="background-image: url(images/bg_1.jpg); height: 400px; background-size: cover; background-position: center; position: relative; margin-top: 0;">
+		<div class="overlay" style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5);"></div>
+		<div class="container text-center d-flex align-items-center justify-content-center" style="height: 100%; position: relative; z-index: 2;">
+			<div>
+				<span class="subheading" style="color: #c49b63; font-family: 'Great Vibes', cursive; font-size: 30px;">Welcome</span>
+				<h1 class="mb-4" style="color: #fff; font-weight: 800; text-transform: uppercase; font-size: 30px;">BREWBEANS COFFEE</h1>
+			</div>
+		</div>
+	</section>
+
+	</div>
+	</div>
+	</div>
+
+	<div class="slider-item" style="background-image: url(images/bg_2.jpg);">
+		<div class="overlay"></div>
+		<div class="container">
+			<div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
+
+				<div class="col-md-8 col-sm-12 text-center ftco-animate">
+					<span class="subheading">Welcome</span>
+					<h1 class="mb-4">BREWBEANS COFFEE BANDUNG</h1>
+					<p class="mb-4 mb-md-5">A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="slider-item" style="background-image: url(images/bg_3.jpg);">
+		<div class="overlay"></div>
+		<div class="container">
+			<div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
+				<div class="col-md-8 col-sm-12 text-center ftco-animate">
+					<span class="subheading">Welcome</span>
+					<h1 class="mb-4">BREWBEANS COFFEE BANDUNG</h1>
+					<p class="mb-4 mb-md-5">A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
+				</div>
+			</div>
+		</div>
+	</div>
 	</section>
 
 	<section class="ftco-intro">

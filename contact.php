@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <?php include 'partials/navbar.php'; ?>
   <!-- END nav -->
 
-  <section class="home-slider owl-carousel">
+  <section class="home-slider owl-carousel d-none d-md-block">
     <div class="slider-item" style="background-image: url(images/bg_3.jpg);" data-stellar-background-ratio="0.5">
       <div class="overlay"></div>
       <div class="container">
@@ -55,6 +55,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <p class="breadcrumbs"><span class="mr-2"><a href="utama.php">Home</a></span> <span>Contact</span></p>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mobile Hero Static -->
+  <section class="mobile-hero d-md-none" style="background-image: url(images/bg_3.jpg); height: 300px; background-size: cover; background-position: center; position: relative;">
+    <div class="overlay" style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5);"></div>
+    <div class="container text-center d-flex align-items-center justify-content-center" style="height: 100%; position: relative; z-index: 2;">
+      <div>
+        <h1 class="mb-3 mt-5 bread" style="color: #fff; font-weight: 800; font-size: 30px;">Contact Us</h1>
+        <p class="breadcrumbs" style="color: rgba(255,255,255,0.8);"><span class="mr-2"><a href="utama.php" style="color: #fff;">Home</a></span> <span>Contact</span></p>
       </div>
     </div>
   </section>
