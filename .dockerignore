@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# SQL dumps (sensitive data)
+*.sql
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development files
+prepros-6.config
+*.log
+*.txt
+
+# Test files
+test_*.php
+test_*.html
+simulate_*.php
+check_*.php
+fix_*.php
+run_*.php
+
+# Documentation
+*.md
+!README.md
+
+# SCSS source (not needed in production)
+scss/
+
+# Admin vendor development files
+admin/node_modules/
+admin/package*.json
+admin/gulpfile.js
+admin/*.yml
+admin/*.txt
+admin/LICENSE
+admin/README.md
