@@ -19,6 +19,7 @@ $userEmail = isset($_SESSION['email']) ? $_SESSION['email'] : '';
 
 
 // Query pesanan user (hanya yang payment success)
+// Note: delivery_status dan delivery_confirmed_at tidak ada di DB production
 $query = "SELECT 
             t.id_transaksi,
             t.order_id,
@@ -27,8 +28,6 @@ $query = "SELECT
             t.gross_amount,
             t.transaction_time,
             t.settlement_time,
-            t.delivery_status,
-            t.delivery_confirmed_at,
             c.status_checkout,
             u.email as user_email,
             u.username
@@ -45,6 +44,13 @@ $stmt->execute();
 $result = $stmt->get_result();
 $pesanan = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+// Add default delivery status for all orders (kolom tidak ada di DB)
+foreach ($pesanan as &$p) {
+    $p['delivery_status'] = 'processing'; // default
+    $p['delivery_confirmed_at'] = null;
+}
+unset($p);
 // $koneksi->close(); // Connection kept open for fetching items in the loop below
 ?>
 <!DOCTYPE html>
@@ -367,24 +373,18 @@ $stmt->close();
                                     <div class="col-md-7">
                                         <div class="order-items">
                                             <?php
-                                            $oid = $item['order_id'];
-                                            $qItems = mysqli_query($koneksi, "
-                                                SELECT ci.*, p.gambar 
-                                                FROM checkout_item ci 
-                                                LEFT JOIN tabel_product p ON ci.product_name = p.nama_product 
-                                                WHERE ci.order_id = '$oid'
-                                            ");
-
-                                            while ($itm = mysqli_fetch_assoc($qItems)):
+                                            // Note: checkout_item table tidak ada di DB production
+                                            // Tampilkan placeholder saja
                                             ?>
                                                 <div class="item-row d-flex align-items-center">
-                                                    <div class="img mr-3" style="background-image: url(images/<?= $itm['gambar'] ?>); width: 60px; height: 60px; background-size: cover; border-radius: 8px;"></div>
+                                                    <div class="img mr-3" style="background: rgba(196,155,99,0.2); width: 60px; height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                        <span class="ion-ios-cube" style="font-size: 24px; color: #c49b63;"></span>
+                                                    </div>
                                                     <div class="text">
-                                                        <div class="item-name"><?= htmlspecialchars($itm['product_name']) ?></div>
-                                                        <div class="item-meta"><?= $itm['quantity'] ?> x Rp <?= number_format($itm['price'], 0, ',', '.') ?></div>
+                                                        <div class="item-name">Pesanan #<?= htmlspecialchars($item['order_id']) ?></div>
+                                                        <div class="item-meta">Total: Rp <?= number_format($item['gross_amount'], 0, ',', '.') ?></div>
                                                     </div>
                                                 </div>
-                                            <?php endwhile; ?>
                                         </div>
                                     </div>
 
