@@ -301,6 +301,7 @@ html [type="button"],
 [type="reset"],
 [type="submit"] {
   -webkit-appearance: button;
+  appearance: button;
 }
 
 button::-moz-focus-inner,
@@ -323,6 +324,7 @@ input[type="time"],
 input[type="datetime-local"],
 input[type="month"] {
   -webkit-appearance: listbox;
+  appearance: listbox;
 }
 
 textarea {
@@ -361,6 +363,7 @@ progress {
 [type="search"] {
   outline-offset: -2px;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 [type="search"]::-webkit-search-cancel-button,
@@ -5710,6 +5713,7 @@ button.close {
   background-color: transparent;
   border: 0;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .modal-open {
@@ -11465,6 +11469,7 @@ textarea.form-control {
 .mfp-with-zoom.mfp-bg {
   opacity: 0;
   -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   -webkit-transition: all 0.3s ease-out;
   -moz-transition: all 0.3s ease-out;
   -o-transition: all 0.3s ease-out;
