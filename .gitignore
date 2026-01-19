@@ -1,0 +1,29 @@
+# Environment files with sensitive data
+.env
+.env.local
+.env.*.local
+
+# Cache directory
+cache/
+
+# Debug files
+debug_*.txt
+debug_*.php
+debug_*.json
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+error_output.html
+captured_html_output.html

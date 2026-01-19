@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test RajaOngkir API - FINAL FIX</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .test-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .result {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .warning { color: #fbbf24; }
+        .info { color: #60a5fa; }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        label {
+            display: inline-block;
+            margin: 10px 15px 10px 0;
+            color: #374151;
+            font-weight: 600;
+        }
+        input, select {
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            margin-left: 10px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .note {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: #92400e;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 RajaOngkir API Testing Tool - FINAL FIX v5</h1>
+        
+        <!-- Test 1 -->
+        <div class="test-section">
+            <h2>1️⃣ Test Connection <span class="status-badge" id="status1"></span></h2>
+            <button onclick="testAPIHandler()">🔌 Test Connection</button>
+            <div id="result1" class="result"></div>
+        </div>
+        
+        <!-- Test 2 -->
+        <div class="test-section">
+            <h2>2️⃣ Get Provinces <span class="status-badge" id="status2"></span></h2>
+            <button onclick="testGetProvinces()">🗺️ Load Provinces</button>
+            <div id="result2" class="result"></div>
+        </div>
+        
+        <!-- Test 3 -->
+        <div class="test-section">
+            <h2>3️⃣ Get Cities <span class="status-badge" id="status3"></span></h2>
+            <div class="note">
+                ⚠️ <strong>FIXED:</strong> Sekarang menggunakan query parameter sesuai dokumentasi API
+            </div>
+            <div class="input-group">
+                <label>Province ID:</label>
+                <input type="number" id="provinceId" value="9" placeholder="9 = Jawa Barat">
+                <button onclick="testGetCities()">🏙️ Load Cities</button>
+            </div>
+            <div id="result3" class="result"></div>
+        </div>
+        
+        <!-- Test 4 -->
+        <div class="test-section">
+            <h2>4️⃣ Get Districts <span class="status-badge" id="status4"></span></h2>
+            <div class="input-group">
+                <label>City ID:</label>
+                <input type="number" id="cityId" value="23" placeholder="23 = Bandung">
+                <button onclick="testGetDistricts()">🏘️ Load Districts</button>
+            </div>
+            <div id="result4" class="result"></div>
+        </div>
+        
+        <!-- Test 5 -->
+        <div class="test-section">
+            <h2>5️⃣ Calculate Shipping Cost <span class="status-badge" id="status5"></span></h2>
+            <div class="note">
+                ⚠️ <strong>IMPORTANT:</strong> Butuh DISTRICT ID (dari step 4), bukan City ID!
+            </div>
+            <div class="input-group">
+                <label>District ID:</label>
+                <input type="number" id="destDistrict" value="385" placeholder="385 = Bandung Wetan">
+            </div>
+            <div class="input-group">
+                <label>Weight (gram):</label>
+                <input type="number" id="weight" value="1000" placeholder="1000">
+            </div>
+            <div class="input-group">
+                <label>Courier:</label>
+                <select id="courier">
+                    <option value="jne">JNE</option>
+                    <option value="pos">POS Indonesia</option>
+                    <option value="tiki">TIKI</option>
+                </select>
+                <button onclick="testGetCost()">💰 Calculate Cost</button>
+            </div>
+            <div id="result5" class="result"></div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function updateStatus(testNum, success) {
+            const badge = document.getElementById('status' + testNum);
+            if (success) {
+                badge.textContent = '✅ SUCCESS';
+                badge.className = 'status-badge status-success';
+            } else {
+                badge.textContent = '❌ FAILED';
+                badge.className = 'status-badge status-error';
+            }
+        }
+
+        function showLoading(resultId) {
+            document.getElementById(resultId).innerHTML = 
+                '<div class="loading"></div> <span class="info">Loading...</span>';
+        }
+
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2)
+                .replace(/"success":\s*true/g, '<span class="success">"success": true</span>')
+                .replace(/"success":\s*false/g, '<span class="error">"success": false</span>')
+                .replace(/"(.*?)":/g, '<span class="info">"$1"</span>:');
+        }
+
+        function showResult(resultId, data, isError = false) {
+            const resultDiv = document.getElementById(resultId);
+            const colorClass = isError ? 'error' : 'success';
+            resultDiv.innerHTML = `<pre class="${colorClass}">${formatJSON(data)}</pre>`;
+        }
+
+        function testAPIHandler() {
+            showLoading('result1');
+            $.ajax({
+                url: 'api_rajaongkir.php?action=test',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('✅ Test:', response);
+                    showResult('result1', response, !response.success);
+                    updateStatus(1, response.success);
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Test error:', error);
+                    const err = {
+                        error: 'AJAX Error',
+                        status: status,
+                        message: error,
+                        response: xhr.responseText
+                    };
+                    showResult('result1', err, true);
+                    updateStatus(1, false);
+                }
+            });
+        }
+
+        function testGetProvinces() {
+            showLoading('result2');
+            $.ajax({
+                url: 'api_rajaongkir.php?action=get_provinces',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('✅ Provinces:', response);
+                    if (response.success && response.data) {
+                        console.log(`Found ${response.data.length} provinces`);
+                    }
+                    showResult('result2', response, !response.success);
+                    updateStatus(2, response.success);
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Provinces error:', error);
+                    const err = {
+                        error: 'AJAX Error',
+                        status: status,
+                        message: error
+                    };
+                    showResult('result2', err, true);
+                    updateStatus(2, false);
+                }
+            });
+        }
+
+        function testGetCities() {
+            const provinceId = document.getElementById('provinceId').value;
+            if (!provinceId) {
+                alert('❌ Please enter Province ID');
+                return;
+            }
+            
+            showLoading('result3');
+            $.ajax({
+                url: 'api_rajaongkir.php?action=get_cities&province_id=' + provinceId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('✅ Cities:', response);
+                    if (response.success && response.data) {
+                        console.log(`✨ Found ${response.data.length} cities`);
+                        if (response.data.length > 0) {
+                            console.log('Sample city:', response.data[0]);
+                        }
+                    }
+                    showResult('result3', response, !response.success);
+                    updateStatus(3, response.success);
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Cities error:', error);
+                    const err = {
+                        error: 'AJAX Error',
+                        status: status,
+                        message: error
+                    };
+                    showResult('result3', err, true);
+                    updateStatus(3, false);
+                }
+            });
+        }
+
+        function testGetDistricts() {
+            const cityId = document.getElementById('cityId').value;
+            if (!cityId) {
+                alert('❌ Please enter City ID');
+                return;
+            }
+            
+            showLoading('result4');
+            $.ajax({
+                url: 'api_rajaongkir.php?action=get_districts&city_id=' + cityId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('✅ Districts:', response);
+                    if (response.success && response.data) {
+                        console.log(`✨ Found ${response.data.length} districts`);
+                        if (response.data.length > 0) {
+                            console.log('Sample district:', response.data[0]);
+                            console.log('💡 Use district_id for cost calculation!');
+                        }
+                    }
+                    showResult('result4', response, !response.success);
+                    updateStatus(4, response.success);
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Districts error:', error);
+                    const err = {
+                        error: 'AJAX Error',
+                        status: status,
+                        message: error
+                    };
+                    showResult('result4', err, true);
+                    updateStatus(4, false);
+                }
+            });
+        }
+
+        function testGetCost() {
+            const destDistrict = document.getElementById('destDistrict').value;
+            const weight = document.getElementById('weight').value;
+            const courier = document.getElementById('courier').value;
+            
+            if (!destDistrict) {
+                alert('❌ Please enter Destination District ID');
+                return;
+            }
+            
+            showLoading('result5');
+            $.ajax({
+                url: 'api_rajaongkir.php?action=get_cost',
+                type: 'POST',
+                data: {
+                    destination: destDistrict,
+                    weight: weight,
+                    courier: courier
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log('✅ Cost:', response);
+                    if (response.success && response.data) {
+                        console.log(`✨ Found ${response.data.length} shipping options`);
+                        response.data.forEach(service => {
+                            console.log(`${service.courier} - ${service.service}: Rp ${service.price.toLocaleString()}`);
+                        });
+                    }
+                    showResult('result5', response, !response.success);
+                    updateStatus(5, response.success);
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Cost error:', error);
+                    const err = {
+                        error: 'AJAX Error',
+                        status: status,
+                        message: error
+                    };
+                    showResult('result5', err, true);
+                    updateStatus(5, false);
+                }
+            });
+        }
+
+        window.onload = function() {
+            console.log('%c🚀 RajaOngkir API Testing Tool - FINAL FIX v5', 'color: #667eea; font-size: 20px; font-weight: bold;');
+            console.log('%c✨ Fixes Applied:', 'color: #10b981; font-weight: bold; font-size: 14px;');
+            console.log('  ✅ Cities endpoint: Fixed with query parameters');
+            console.log('  ✅ Districts endpoint: Fixed with query parameters');
+            console.log('  ✅ Fallback mechanism: GET first, POST as backup');
+            console.log('  ✅ Proper authentication headers');
+            console.log('%c🎯 Starting automatic test...', 'color: #667eea;');
+            testAPIHandler();
+        };
+    </script>
+</body>
+</html>
