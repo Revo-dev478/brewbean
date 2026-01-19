@@ -2,12 +2,10 @@
 // Load environment variables
 require_once __DIR__ . '/env_loader.php';
 
-// Set session lifetime to 1 day
-ini_set('session.gc_maxlifetime', 86400);
-session_set_cookie_params(86400);
-
-// Start session if not already started
+// Set session lifetime to 1 day (Only if session not started)
 if (session_status() == PHP_SESSION_NONE) {
+    ini_set('session.gc_maxlifetime', 86400);
+    session_set_cookie_params(86400);
     session_start();
 }
 
