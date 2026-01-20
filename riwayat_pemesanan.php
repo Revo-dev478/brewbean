@@ -19,7 +19,6 @@ $userEmail = isset($_SESSION['email']) ? $_SESSION['email'] : '';
 
 
 // Query pesanan user (hanya yang payment success)
-// Note: delivery_status dan delivery_confirmed_at tidak ada di DB production
 $query = "SELECT 
             t.id_transaksi,
             t.order_id,
@@ -28,6 +27,8 @@ $query = "SELECT
             t.gross_amount,
             t.transaction_time,
             t.settlement_time,
+            t.delivery_status,
+            t.delivery_confirmed_at,
             c.status_checkout,
             u.email as user_email,
             u.username
@@ -45,10 +46,11 @@ $result = $stmt->get_result();
 $pesanan = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Add default delivery status for all orders (kolom tidak ada di DB)
+// Set default delivery status if null in database
 foreach ($pesanan as &$p) {
-    $p['delivery_status'] = 'processing'; // default
-    $p['delivery_confirmed_at'] = null;
+    if (empty($p['delivery_status'])) {
+        $p['delivery_status'] = 'processing';
+    }
 }
 unset($p);
 // $koneksi->close(); // Connection kept open for fetching items in the loop below
