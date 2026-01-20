@@ -22,9 +22,11 @@ mysqli_options($koneksi, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
 // Attempt connection
 $success = @mysqli_real_connect($koneksi, $host, $username, $password, $database);
 
+$db_error = null;
 if (!$success) {
-    error_log("Koneksi database gagal: " . mysqli_connect_error());
-    // Fallback: Ensure $koneksi is false but code doesn't crash on mysqli_set_charset
+    $db_error = mysqli_connect_error();
+    error_log("Database Connection Error: " . $db_error);
+    $koneksi = false;
 } else {
     mysqli_set_charset($koneksi, "utf8");
 }

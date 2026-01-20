@@ -84,6 +84,12 @@ $siteTitle = "Coffee - Brewbeans Coffee Bandung";
 </head>
 
 <body>
+	<?php if (isset($db_error) && $db_error): ?>
+		<div style="background: #ff5252; color: white; padding: 10px; text-align: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;">
+			⚠️ <strong>Database Offline:</strong> <?= htmlspecialchars($db_error) ?>. Website mungkin tidak berfungsi dengan benar.
+		</div>
+		<div style="height: 50px;"></div>
+	<?php endif; ?>
 	<?php include 'partials/navbar.php'; ?>
 
 
