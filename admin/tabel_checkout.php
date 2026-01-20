@@ -45,11 +45,11 @@ $sql = "
         c.created_at,
         u.username,
         u.email,
-        GROUP_CONCAT(ci.product_name SEPARATOR ', ') as product_names
+        tm.transaction_status,
+        tm.payment_type as mp_type
     FROM checkout c
     LEFT JOIN tabel_user u ON c.id_user = u.id_user
-    LEFT JOIN checkout_item ci ON c.order_id = ci.order_id
-    GROUP BY c.id_checkout
+    LEFT JOIN transaksi_midtrans tm ON c.order_id = tm.order_id
     ORDER BY c.created_at DESC
 ";
 
@@ -133,26 +133,65 @@ if (!$result) {
                                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                                 <?php
                                                 $username = isset($row['username']) && $row['username'] !== '' ? $row['username'] : '-';
+                                                $email = isset($row['email']) ? $row['email'] : '';
+
+                                                // Status Logic (Prioritize Midtrans Status)
+                                                $status = $row['status_checkout'];
+                                                $badgeClass = 'badge-secondary';
+
+                                                if (!empty($row['transaction_status'])) {
+                                                    $midtransStatus = $row['transaction_status'];
+                                                    if ($midtransStatus == 'settlement' || $midtransStatus == 'capture') {
+                                                        $status = 'SUCCESS';
+                                                        $badgeClass = 'badge-success';
+                                                    } elseif ($midtransStatus == 'pending') {
+                                                        $status = 'PENDING';
+                                                        $badgeClass = 'badge-warning';
+                                                    } elseif ($midtransStatus == 'expire') {
+                                                        $status = 'EXPIRED';
+                                                        $badgeClass = 'badge-secondary';
+                                                    } elseif ($midtransStatus == 'cancel' || $midtransStatus == 'deny' || $midtransStatus == 'failure') {
+                                                        $status = 'FAILED';
+                                                        $badgeClass = 'badge-danger';
+                                                    }
+                                                } else {
+                                                    // Fallback to local status
+                                                    if ($status === 'success') $badgeClass = 'badge-success';
+                                                    elseif ($status === 'pending') $badgeClass = 'badge-warning';
+                                                    else $badgeClass = 'badge-danger';
+                                                    $status = strtoupper($status);
+                                                }
+
+                                                // Payment Method
+                                                $metode = !empty($row['mp_type']) ? $row['mp_type'] : $row['metode_pembayaran'];
+                                                $metode = strtoupper(str_replace('_', ' ', $metode));
+
+                                                // Fetch Items
+                                                $orderId = $row['order_id'];
+                                                $items = [];
+                                                $qItems = mysqli_query($koneksi, "SELECT product_name, quantity FROM checkout_item WHERE order_id = '$orderId'");
+                                                while ($item = mysqli_fetch_assoc($qItems)) {
+                                                    $items[] = $item['product_name'] . " <span class='badge badge-light'>x" . $item['quantity'] . "</span>";
+                                                }
+                                                $itemsHtml = implode('<br>', $items);
                                                 ?>
                                                 <tr>
                                                     <td><?php echo $row['id_checkout']; ?></td>
-                                                    <td><strong><?php echo htmlspecialchars($row['order_id']); ?></strong></td>
-                                                    <td><?php echo htmlspecialchars(isset($row['product_names']) ? $row['product_names'] : '-'); ?></td>
-                                                    <td><?php echo htmlspecialchars($username); ?></td>
+                                                    <td>
+                                                        <strong><?php echo htmlspecialchars($row['order_id']); ?></strong>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo $itemsHtml ?: '<span class="text-muted">-</span>'; ?>
+                                                    </td>
+                                                    <td>
+                                                        <strong><?php echo htmlspecialchars($username); ?></strong><br>
+                                                        <small class="text-muted"><?php echo htmlspecialchars($email); ?></small>
+                                                    </td>
                                                     <td><strong>Rp <?php echo number_format($row['total_harga'], 0, ',', '.'); ?></strong></td>
                                                     <td>
-                                                        <?php
-                                                        $status = $row['status_checkout'];
-                                                        if ($status === 'success') {
-                                                            echo '<span class="badge badge-success">SUCCESS</span>';
-                                                        } elseif ($status === 'pending') {
-                                                            echo '<span class="badge badge-warning">PENDING</span>';
-                                                        } else {
-                                                            echo '<span class="badge badge-danger">FAILED</span>';
-                                                        }
-                                                        ?>
+                                                        <span class="badge <?php echo $badgeClass; ?>"><?php echo $status; ?></span>
                                                     </td>
-                                                    <td><?php echo htmlspecialchars($row['metode_pembayaran']); ?></td>
+                                                    <td><?php echo htmlspecialchars($metode); ?></td>
                                                     <td><?php echo date('d/m/Y H:i', strtotime($row['created_at'])); ?></td>
                                                     <td>
                                                         <button type="button" class="btn btn-sm btn-info btn-edit"
