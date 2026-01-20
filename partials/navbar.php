@@ -6,7 +6,7 @@ $id_user = $isLoggedIn ? $_SESSION['id_user'] : null;
 $username = '';
 $cart_count = 0;
 
-if ($isLoggedIn) {
+if ($isLoggedIn && $koneksi) {
     // Fetch username
     $nav_query_user = "SELECT username FROM tabel_user WHERE id_user = '$id_user'";
     $nav_result_user = mysqli_query($koneksi, $nav_query_user);

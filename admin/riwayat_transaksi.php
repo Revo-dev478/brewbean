@@ -112,18 +112,21 @@ while ($checkout = mysqli_fetch_assoc($checkoutQuery)) {
 }
 */
 
-// QUERY UTAMA - FIX: Tambah error checking
-$sql = "SELECT t.*, c.status_checkout, u.username, u.email 
-        FROM transaksi_midtrans t
-        LEFT JOIN checkout c ON t.order_id = c.order_id
-        LEFT JOIN tabel_user u ON t.id_user = u.id_user
-        ORDER BY t.transaction_time DESC, t.id_transaksi DESC";
+$result = false;
+if ($koneksi) {
+    // QUERY UTAMA - FIX: Tambah error checking
+    $sql = "SELECT t.*, c.status_checkout, u.username, u.email 
+            FROM transaksi_midtrans t
+            LEFT JOIN checkout c ON t.order_id = c.order_id
+            LEFT JOIN tabel_user u ON t.id_user = u.id_user
+            ORDER BY t.transaction_time DESC, t.id_transaksi DESC";
 
-$result = mysqli_query($koneksi, $sql);
+    $result = mysqli_query($koneksi, $sql);
 
-// Debug jika query error
-if (!$result) {
-    die("Query Error: " . mysqli_error($koneksi));
+    // Debug jika query error
+    if (!$result) {
+        error_log("Query Error: " . mysqli_error($koneksi));
+    }
 }
 ?>
 <!DOCTYPE html>
