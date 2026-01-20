@@ -196,17 +196,21 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
 
     <div class="social-login">
       <div class="social-btn" onclick="alert('Login dengan Google sedang dalam pengembangan ☕')">
-        <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" />
+        <img src="img/google.svg" width="20" />
         Sign up with Google
       </div>
       <div class="social-btn" onclick="alert('Login dengan Facebook sedang dalam pengembangan ☕')">
-        <img src="https://www.svgrepo.com/show/452196/facebook-1.svg" width="20" />
+        <img src="img/facebook.svg" width="20" />
         Sign up with Facebook
       </div>
       <div class="social-btn" onclick="alert('Login dengan Apple sedang dalam pengembangan ☕')">
-        <img src="https://www.svgrepo.com/show/349442/apple.svg" width="20" />
+        <img src="img/apple.svg" width="20" />
         Sign up with Apple
       </div>
+    </div>
+
+    <div class="bottom-text" style="margin-top: 15px;">
+      <a href="forgot-password.php" style="font-size: 13px; color: #8d6e63;">Forgot Password?</a>
     </div>
 
     <div class="bottom-text">
