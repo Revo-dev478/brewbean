@@ -39,15 +39,19 @@ $query = "SELECT
           AND t.transaction_status IN ('settlement', 'capture', 'pending')
           ORDER BY t.transaction_time DESC";
 
-$stmt = $koneksi->prepare($query);
-$stmt->bind_param("i", $id_user);
-$stmt->execute();
-$result = $stmt->get_result();
 $pesanan = [];
-while ($row = $result->fetch_assoc()) {
-    $pesanan[] = $row;
+if ($koneksi) {
+    $stmt = $koneksi->prepare($query);
+    if ($stmt) {
+        $stmt->bind_param("i", $id_user);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $pesanan[] = $row;
+        }
+        $stmt->close();
+    }
 }
-$stmt->close();
 
 // Set default delivery status if null in database
 foreach ($pesanan as &$p) {
