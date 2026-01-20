@@ -314,6 +314,11 @@ if (!$result) {
                                                 elseif ($dStatus == 'delivered') $dBadge = 'badge-delivered';
                                                 elseif ($dStatus == 'confirmed') $dBadge = 'badge-confirmed';
 
+                                                $dStatusLabel = $dStatus;
+                                                if ($dStatus == 'processing') $dStatusLabel = 'Diproses';
+                                                elseif ($dStatus == 'shipped') $dStatusLabel = 'Dikirim';
+                                                elseif ($dStatus == 'delivered') $dStatusLabel = 'Sudah Sampai';
+                                                elseif ($dStatus == 'confirmed') $dStatusLabel = 'Selesai';
                                                 ?>
                                                 <tr>
                                                     <td><?= $no++ ?></td>
@@ -325,7 +330,7 @@ if (!$result) {
                                                     <td><?= $row['payment_type'] ?></td>
                                                     <td><span class="badge <?= $pBadge ?>"><?= $pStatus ?></span></td>
                                                     <td>
-                                                        <span class="badge <?= $dBadge ?>"><?= ucfirst($dStatus) ?></span>
+                                                        <span class="badge <?= $dBadge ?>"><?= $dStatusLabel ?></span>
                                                     </td>
                                                     <td>
                                                         <div style="font-size: 0.85rem; color: #333;">
@@ -433,10 +438,10 @@ if (!$result) {
                         <div class="form-group">
                             <label>Status Pengiriman</label>
                             <select name="delivery_status" id="edit_delivery" class="form-control">
-                                <option value="processing">Processing</option>
-                                <option value="shipped">Shipped</option>
-                                <option value="delivered">Delivered</option>
-                                <option value="confirmed">Confirmed (Selesai)</option>
+                                <option value="processing">Diproses (Processing)</option>
+                                <option value="shipped">Dikirim (Shipped)</option>
+                                <option value="delivered">Sudah Sampai (Delivered)</option>
+                                <option value="confirmed">Selesai (Confirmed)</option>
                             </select>
                         </div>
                     </div>
