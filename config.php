@@ -18,11 +18,13 @@ $database = env('DB_DATABASE', 'db_brewbeans');
 mysqli_report(MYSQLI_REPORT_OFF);
 $koneksi = mysqli_init();
 mysqli_options($koneksi, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
-@mysqli_real_connect($koneksi, $host, $username, $password, $database);
 
-if (mysqli_connect_errno()) {
-    $koneksi = false;
+// Attempt connection
+$success = @mysqli_real_connect($koneksi, $host, $username, $password, $database);
+
+if (!$success) {
     error_log("Koneksi database gagal: " . mysqli_connect_error());
+    // Fallback: Ensure $koneksi is false but code doesn't crash on mysqli_set_charset
+} else {
+    mysqli_set_charset($koneksi, "utf8");
 }
-
-mysqli_set_charset($koneksi, "utf8");
