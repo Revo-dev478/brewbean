@@ -149,6 +149,7 @@ CREATE TABLE `tabel_product` (
   `harga` int(11) NOT NULL,
   `qty` int(11) DEFAULT NULL,
   `id_kategori` int(11) NOT NULL,
+  `id_penjual` int(11) DEFAULT NULL,
   `gambar` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -213,7 +214,11 @@ CREATE TABLE `transaksi_midtrans` (
   `transaction_time` datetime DEFAULT CURRENT_TIMESTAMP,
   `settlement_time` datetime DEFAULT NULL,
   `fraud_status` varchar(50) DEFAULT NULL,
-  `signature_key` varchar(255) DEFAULT NULL
+  `signature_key` varchar(255) DEFAULT NULL,
+  `delivery_status` varchar(50) DEFAULT 'processing',
+  `detail_item` text DEFAULT NULL,
+  `ongkir` decimal(12,2) DEFAULT 0
+
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
