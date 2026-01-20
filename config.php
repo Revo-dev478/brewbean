@@ -14,19 +14,13 @@ $username = env('DB_USERNAME', 'root');
 $password = env('DB_PASSWORD', '');
 $database = env('DB_DATABASE', 'db_brewbeans');
 
-// Set connection timeout (5 seconds)
-mysqli_report(MYSQLI_REPORT_OFF);
-$koneksi = mysqli_init();
-mysqli_options($koneksi, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
-
-// Attempt connection
-$success = @mysqli_real_connect($koneksi, $host, $username, $password, $database);
+// Connection with 5s timeout
+$koneksi = @mysqli_connect($host, $username, $password, $database);
 
 $db_error = null;
-if (!$success) {
+if (!$koneksi) {
     $db_error = mysqli_connect_error();
     error_log("Database Connection Error: " . $db_error);
-    $koneksi = false;
 } else {
     mysqli_set_charset($koneksi, "utf8");
 }
