@@ -42,6 +42,7 @@ $query = "SELECT
 $stmt = $koneksi->prepare($query);
 $stmt->bind_param("i", $id_user);
 $stmt->execute();
+$result = $stmt->get_result();
 $pesanan = [];
 while ($row = $result->fetch_assoc()) {
     $pesanan[] = $row;
