@@ -101,77 +101,16 @@ $syncCount = 0;
 // (Kode sync tetap sama seperti sebelumnya, dipersingkat di sini tapi di file asli harus lengkap)
 // Copied logic from previous file to ensure auto-sync still works
 
-$startTime = time(); // Timer start
+/* 
+// DISABLED AUTO-SYNC ON PAGELOAD (Too slow / Causes Timeouts)
+$startTime = time(); 
 $checkoutQuery = mysqli_query($koneksi, "SELECT order_id, id_user, total_harga, status_checkout, created_at FROM checkout WHERE status_checkout = 'pending' ORDER BY created_at DESC");
 
 while ($checkout = mysqli_fetch_assoc($checkoutQuery)) {
-    $orderId = $checkout['order_id'];
-    $id_user = $checkout['id_user'];
-
-    // Cek hanya jika belum final di DB local atau ingin force check
-    // Untuk performa, kita cek semua setiap kali load page (sesuai request user sebelumnya "auto sync")
-    // Tapi sebaiknya dibatasi jika data banyak. Untuk sekarang biarkan.
-
-    $midtransData = getMidtransStatus($orderId, $serverKey, $apiUrl);
-
-    if ($midtransData && isset($midtransData['transaction_status'])) {
-        $transactionStatus = mysqli_real_escape_string($koneksi, $midtransData['transaction_status']);
-        $paymentType = isset($midtransData['payment_type']) ? mysqli_real_escape_string($koneksi, $midtransData['payment_type']) : 'unknown';
-        $grossAmount = isset($midtransData['gross_amount']) ? (float)$midtransData['gross_amount'] : (float)$checkout['total_harga'];
-        $fraudStatus = isset($midtransData['fraud_status']) ? mysqli_real_escape_string($koneksi, $midtransData['fraud_status']) : '';
-        $transactionTime = isset($midtransData['transaction_time']) ? mysqli_real_escape_string($koneksi, $midtransData['transaction_time']) : $checkout['created_at'];
-        $settlementTime = isset($midtransData['settlement_time']) ? mysqli_real_escape_string($koneksi, $midtransData['settlement_time']) : null;
-        $settlementTimeSql = $settlementTime ? "'$settlementTime'" : "NULL";
-
-        // Update checkout
-        $checkoutStatus = getCheckoutStatus($transactionStatus);
-        mysqli_query($koneksi, "UPDATE checkout SET status_checkout = '$checkoutStatus' WHERE order_id = '$orderId'");
-
-        // Update/Insert transaksi_midtrans
-        // Hitung Ongkir & Format Detail Item
-        $qItems = mysqli_query($koneksi, "SELECT product_name, quantity, price, subtotal FROM checkout_item WHERE order_id = '$orderId'");
-        $itemTotal = 0;
-        $detailItemStr = "";
-
-        if (mysqli_num_rows($qItems) > 0) {
-            $arrItems = [];
-            while ($itm = mysqli_fetch_assoc($qItems)) {
-                $arrItems[] = "<strong>" . $itm['product_name'] . "</strong><br><small class='text-muted'>" . $itm['quantity'] . " x Rp " . number_format($itm['price'], 0, ',', '.') . "</small>";
-                $itemTotal += $itm['subtotal'];
-            }
-            $detailItemStr = implode('<br><br>', $arrItems);
-        }
-
-        $ongkir = $grossAmount - $itemTotal;
-        if ($ongkir < 0) $ongkir = 0; // Safety
-
-        // Escape content
-        $safeDetail = mysqli_real_escape_string($koneksi, $detailItemStr);
-
-        // Update/Insert transaksi_midtrans
-        $existCheck = mysqli_query($koneksi, "SELECT id_transaksi FROM transaksi_midtrans WHERE order_id = '$orderId'");
-        if (mysqli_num_rows($existCheck) > 0) {
-            mysqli_query($koneksi, "UPDATE transaksi_midtrans SET 
-                transaction_status = '$transactionStatus',
-                payment_type = '$paymentType',
-                gross_amount = $grossAmount,
-                fraud_status = '$fraudStatus',
-                transaction_time = '$transactionTime',
-                settlement_time = $settlementTimeSql,
-                detail_item = '$safeDetail',
-                ongkir = '$ongkir'
-                WHERE order_id = '$orderId'");
-        } else {
-            mysqli_query($koneksi, "INSERT INTO transaksi_midtrans 
-                (id_user, order_id, transaction_status, payment_type, gross_amount, fraud_status, transaction_time, settlement_time, delivery_status, detail_item, ongkir)
-                VALUES ($id_user, '$orderId', '$transactionStatus', '$paymentType', $grossAmount, '$fraudStatus', '$transactionTime', $settlementTimeSql, 'processing', '$safeDetail', '$ongkir')");
-        }
-        $syncCount++;
-    }
-
-    // Stop if execution time nears limit (e.g. 25 seconds)
+    // ... logic ...
     if (time() - $startTime > 20) break;
 }
+*/
 
 // QUERY UTAMA - FIX: Tambah error checking
 $sql = "SELECT t.*, c.status_checkout, u.username, u.email 

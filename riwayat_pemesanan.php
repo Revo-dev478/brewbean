@@ -349,7 +349,7 @@ unset($p);
                                 $status_text = 'Selesai';
                             } elseif ($delivery_status == 'delivered') {
                                 $badge_class = 'status-delivered';
-                                $status_text = 'Terkirim';
+                                $status_text = 'Sudah Sampai';
                             } elseif ($delivery_status == 'shipped') {
                                 $badge_class = 'status-shipped';
                                 $status_text = 'Dikirim';
