@@ -456,7 +456,7 @@ unset($p);
                                                 <div class="timeline-content">
                                                     <div class="timeline-label">Pesanan Sampai</div>
                                                     <?php if ($delivery_status == 'confirmed'): ?>
-                                                        <div class="timeline-time"><?= date('d M Y, H:i', strtotime($item['delivery_confirmed_at'])) ?></div>
+                                                        <div class="timeline-time"><?= !empty($item['delivery_confirmed_at']) ? date('d M Y, H:i', strtotime($item['delivery_confirmed_at'])) : '-' ?></div>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>

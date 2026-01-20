@@ -1,4 +1,5 @@
 <?php
+
 /**
  * KONFIRMASI PESANAN - Endpoint untuk konfirmasi penerimaan pesanan
  */
@@ -22,8 +23,8 @@ if (empty($_POST['order_id'])) {
 $order_id = $_POST['order_id'];
 
 // Koneksi database
-$koneksi = new mysqli("localhost", "root", "", "db_brewbeans");
-if ($koneksi->connect_error) {
+require_once 'config.php';
+if (!$koneksi) {
     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
 }
@@ -62,4 +63,3 @@ if ($update->execute()) {
     $koneksi->close();
     echo json_encode(['success' => false, 'message' => 'Failed to update order status']);
 }
-?>
