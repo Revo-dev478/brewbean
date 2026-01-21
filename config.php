@@ -14,13 +14,22 @@ $username = env('DB_USERNAME', 'root');
 $password = env('DB_PASSWORD', '');
 $database = env('DB_DATABASE', 'db_brewbeans');
 
-// Connection with 5s timeout
-$koneksi = @mysqli_connect($host, $username, $password, $database);
+// Connection with 5s timeout to prevent health check failures
+$koneksi = mysqli_init();
+if ($koneksi) {
+    mysqli_options($koneksi, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+    // Use @ to suppress warnings since we handle the error via $db_error
+    $success = @mysqli_real_connect($koneksi, $host, $username, $password, $database);
 
-$db_error = null;
-if (!$koneksi) {
-    $db_error = mysqli_connect_error();
-    error_log("Database Connection Error: " . $db_error);
+    $db_error = null;
+    if (!$success) {
+        $db_error = mysqli_connect_error();
+        error_log("Database Connection Error: " . $db_error);
+        $koneksi = false; // Set to false to trigger safety checks in other files
+    } else {
+        mysqli_set_charset($koneksi, "utf8");
+    }
 } else {
-    mysqli_set_charset($koneksi, "utf8");
+    $db_error = "Failed to initialize MySQLi";
+    $koneksi = false;
 }

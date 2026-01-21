@@ -6,22 +6,22 @@ echo "🚀 Starting BrewBean Application..."
 # Create .env file from environment variables if they exist
 if [ -n "$DB_HOST" ]; then
     echo "Creating .env file from environment variables..."
-    cat > /var/www/html/.env << EOF
+    cat > /var/www/html/.env << 'EOF'
 # Database Configuration
-DB_HOST=${DB_HOST:-localhost}
-DB_USERNAME=${DB_USERNAME:-root}
-DB_PASSWORD=${DB_PASSWORD:-}
-DB_DATABASE=${DB_DATABASE:-db_brewbeans}
+DB_HOST=${DB_HOST}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+DB_DATABASE=${DB_DATABASE}
 
 # Midtrans Configuration
-MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY:-}
-MIDTRANS_SERVER_KEY_ALT=${MIDTRANS_SERVER_KEY_ALT:-}
-MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY:-}
-MIDTRANS_IS_PRODUCTION=${MIDTRANS_IS_PRODUCTION:-false}
+MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
+MIDTRANS_SERVER_KEY_ALT=${MIDTRANS_SERVER_KEY_ALT}
+MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY}
+MIDTRANS_IS_PRODUCTION=${MIDTRANS_IS_PRODUCTION}
 
 # RajaOngkir Configuration
-RAJAONGKIR_API_KEY=${RAJAONGKIR_API_KEY:-}
-RAJAONGKIR_BASE_URL=${RAJAONGKIR_BASE_URL:-https://rajaongkir.komerce.id/api/v1}
+RAJAONGKIR_API_KEY=${RAJAONGKIR_API_KEY}
+RAJAONGKIR_BASE_URL=${RAJAONGKIR_BASE_URL}
 EOF
     chown www-data:www-data /var/www/html/.env
     chmod 600 /var/www/html/.env
