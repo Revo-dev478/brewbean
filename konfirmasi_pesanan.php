@@ -43,10 +43,10 @@ if (!$transaksi) {
     exit;
 }
 
-// Cek apakah status delivered
-if ($transaksi['delivery_status'] != 'delivered') {
+// Cek apakah status valid untuk dikonfirmasi
+if (!in_array($transaksi['delivery_status'], ['processing', 'shipped', 'delivered'])) {
     $koneksi->close();
-    echo json_encode(['success' => false, 'message' => 'Order status is not delivered yet']);
+    echo json_encode(['success' => false, 'message' => 'Order status cannot be confirmed yet']);
     exit;
 }
 

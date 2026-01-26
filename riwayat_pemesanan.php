@@ -469,7 +469,7 @@ unset($p);
                                             </div>
                                         </div>
 
-                                        <?php if ($delivery_status == 'delivered'): ?>
+                                        <?php if (in_array($delivery_status, ['processing', 'shipped', 'delivered'])): ?>
                                             <div class="mt-4 text-right">
                                                 <button class="btn btn-primary" onclick="konfirmasiPesanan('<?= $item['order_id'] ?>')">
                                                     Konfirmasi Terima Pesanan

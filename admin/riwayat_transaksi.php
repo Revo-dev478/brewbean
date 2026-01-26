@@ -140,16 +140,36 @@ $syncCount = 0;
 // (Kode sync tetap sama seperti sebelumnya, dipersingkat di sini tapi di file asli harus lengkap)
 // Copied logic from previous file to ensure auto-sync still works
 
-/* 
-// DISABLED AUTO-SYNC ON PAGELOAD (Too slow / Causes Timeouts)
-$startTime = time(); 
-$checkoutQuery = mysqli_query($koneksi, "SELECT order_id, id_user, total_harga, status_checkout, created_at FROM checkout WHERE status_checkout = 'pending' ORDER BY created_at DESC");
+// AUTO-SYNC LOGIC (ON PAGE LOAD)
+// Limit to recent pending transactions to avoid performance issues
+$startTime = time();
+$syncQuery = mysqli_query($koneksi, "SELECT id_transaksi, order_id FROM transaksi_midtrans WHERE transaction_status IN ('pending', 'authorize', 'capture') ORDER BY transaction_time DESC LIMIT 10");
 
-while ($checkout = mysqli_fetch_assoc($checkoutQuery)) {
-    // ... logic ...
-    if (time() - $startTime > 20) break;
+if ($syncQuery) {
+    while ($row = mysqli_fetch_assoc($syncQuery)) {
+        // Prevent timeout (max 5 seconds sync time)
+        if (time() - $startTime > 5) break;
+
+        $midtransStatus = getMidtransStatus($row['order_id'], $serverKey, $apiUrl);
+        if ($midtransStatus && isset($midtransStatus['transaction_status'])) {
+            $newStatus = $midtransStatus['transaction_status'];
+
+            // Update if status changed
+            // We blindly update here to ensure latest status, or check if changed first. 
+            // Updating properly:
+            mysqli_query($koneksi, "UPDATE transaksi_midtrans SET transaction_status = '$newStatus' WHERE id_transaksi = '" . $row['id_transaksi'] . "'");
+
+            // Update Checkout Status
+            if ($newStatus == 'settlement' || $newStatus == 'capture') {
+                mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'success' WHERE order_id = '" . $row['order_id'] . "'");
+            } elseif (in_array($newStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+                mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'failed' WHERE order_id = '" . $row['order_id'] . "'");
+            }
+
+            $syncCount++;
+        }
+    }
 }
-*/
 
 $result = false;
 if ($koneksi) {
@@ -346,9 +366,7 @@ if ($koneksi) {
                                                     <td><?= date('d/m/y H:i', strtotime($row['transaction_time'])) ?></td>
                                                     <td>
                                                         <div class="d-flex flex-column">
-                                                            <a href="riwayat_transaksi.php?action=sync&id=<?= $row['id_transaksi'] ?>" class="btn btn-sm btn-secondary mb-1" title="Sync Status dari Midtrans">
-                                                                <i class="fas fa-sync"></i> Sync
-                                                            </a>
+                                                            <!-- Sync Button Removed (Auto-Sync Enabled) -->
                                                             <button type="button" class="btn btn-sm btn-info btn-edit mb-1"
                                                                 data-toggle="modal"
                                                                 data-target="#editModal"
