@@ -48,6 +48,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btn_update_transaksi'
 }
 
 // ----------------------------------------------------
+// HANDLER SYNC STATUS MANUAL
+// ----------------------------------------------------
+if (isset($_GET['action']) && $_GET['action'] == 'sync' && isset($_GET['id'])) {
+    $id_transaksi = $_GET['id'];
+    $order_id_query = mysqli_query($koneksi, "SELECT order_id FROM transaksi_midtrans WHERE id_transaksi = '$id_transaksi'");
+
+    if ($row = mysqli_fetch_assoc($order_id_query)) {
+        $order_id = $row['order_id'];
+        $midtransStatus = getMidtransStatus($order_id, $serverKey, $apiUrl);
+
+        if ($midtransStatus && isset($midtransStatus['transaction_status'])) {
+            $newStatus = $midtransStatus['transaction_status'];
+            // Update Transaksi
+            mysqli_query($koneksi, "UPDATE transaksi_midtrans SET transaction_status = '$newStatus' WHERE id_transaksi = '$id_transaksi'");
+
+            // Update Checkout Status
+            if ($newStatus == 'settlement' || $newStatus == 'capture') {
+                mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'success' WHERE order_id = '$order_id'");
+            } elseif (in_array($newStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+                mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'failed' WHERE order_id = '$order_id'");
+            }
+
+            $_SESSION['flash_message'] = "Status berhasil disinkronkan: " . strtoupper($newStatus);
+            $_SESSION['flash_type'] = "success";
+        } else {
+            $_SESSION['flash_message'] = "Gagal mengambil status dari Midtrans (Order ID mungkin belum ada di server Midtrans)";
+            $_SESSION['flash_type'] = "warning";
+        }
+    } else {
+        $_SESSION['flash_message'] = "Transaksi tidak ditemukan";
+        $_SESSION['flash_type'] = "danger";
+    }
+
+    // Redirect back
+    header("Location: riwayat_transaksi.php");
+    exit;
+}
+
+// ----------------------------------------------------
 // HANDLER QUICK UPDATE DELIVERY STATUS (Legacy support if needed, or removing to use modal only. 
 // Keeping purely as fallback or removing? Better to keep unified. 
 // I will keep the quick select handler logic separate IF existing forms use it, 
@@ -307,6 +346,9 @@ if ($koneksi) {
                                                     <td><?= date('d/m/y H:i', strtotime($row['transaction_time'])) ?></td>
                                                     <td>
                                                         <div class="d-flex flex-column">
+                                                            <a href="riwayat_transaksi.php?action=sync&id=<?= $row['id_transaksi'] ?>" class="btn btn-sm btn-secondary mb-1" title="Sync Status dari Midtrans">
+                                                                <i class="fas fa-sync"></i> Sync
+                                                            </a>
                                                             <button type="button" class="btn btn-sm btn-info btn-edit mb-1"
                                                                 data-toggle="modal"
                                                                 data-target="#editModal"

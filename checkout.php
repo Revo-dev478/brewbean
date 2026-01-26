@@ -773,7 +773,9 @@ if ($user_phone != '' && substr($user_phone, 0, 1) != '0') {
                     phone: $('#phone').val(),
                     address: $('#alamat').val(),
                     city: $('#kota_nama').val(),
-                    postal_code: $('#kodepos').val()
+                    postal_code: $('#kodepos').val(),
+                    shipping_cost: parseInt($('#shipping_cost').val()),
+                    shipping_service: $('#shipping_service').val() || 'Courier'
                 };
 
                 // Kirim ke server untuk proses pembayaran

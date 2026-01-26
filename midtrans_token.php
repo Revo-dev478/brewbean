@@ -45,6 +45,8 @@ if (!$input) {
 
 $order_id = 'ORDER-' . time() . '-' . rand(100, 999);
 $amount   = (int) $input['amount'];
+$shipping_cost = isset($input['shipping_cost']) ? (int) $input['shipping_cost'] : 0;
+$shipping_service = isset($input['shipping_service']) ? $input['shipping_service'] : 'Regular';
 
 /* ==========================
    INSERT KE TABLE CHECKOUT
@@ -77,6 +79,7 @@ $cart_query = mysqli_query($koneksi, "
     WHERE k.id_user = '$id_user'
 ");
 
+$item_details_string = "";
 if ($cart_query) {
     while ($item = mysqli_fetch_assoc($cart_query)) {
         $pName = mysqli_real_escape_string($koneksi, $item['nama_product']);
@@ -85,12 +88,16 @@ if ($cart_query) {
         $pSubtotal = $pPrice * $pQty;
         $pId = $item['id_product'];
 
+        // Build detail string (e.g. "Kopi A (2), Kopi B (1)")
+        $item_details_string .= $pName . " (" . $pQty . "), ";
+
         // Insert to checkout_item
         mysqli_query($koneksi, "
             INSERT INTO checkout_item (order_id, id_product, product_name, price, quantity, subtotal)
             VALUES ('$order_id', '$pId', '$pName', '$pPrice', '$pQty', '$pSubtotal')
         ");
     }
+    $item_details_string = rtrim($item_details_string, ", ");
 }
 
 /* ==========================
@@ -115,10 +122,16 @@ $params = [
     ],
     'item_details' => [
         [
-            'id' => 'TOTAL',
-            'price' => $amount,
+            'id' => 'ITEM_TOTAL',
+            'price' => $amount - $shipping_cost, // Subtotal only
             'quantity' => 1,
-            'name' => 'Total Pembelian'
+            'name' => 'Total Item'
+        ],
+        [
+            'id' => 'ONGKIR',
+            'price' => $shipping_cost,
+            'quantity' => 1,
+            'name' => 'Ongkir: ' . $shipping_service
         ]
     ]
 ];
@@ -165,9 +178,9 @@ if ($httpCode == 201) {
     // Note: detail_item column mungkin tidak ada, gunakan column yang ada saja
     $query_insert = "
         INSERT INTO transaksi_midtrans (
-            order_id, id_user, gross_amount, payment_type, transaction_status, transaction_time
+            order_id, id_user, gross_amount, payment_type, transaction_status, transaction_time, ongkir, detail_item
         ) VALUES (
-            '$order_id', '$id_user', '$gross_amount', 'midtrans', 'pending', '$curr_time'
+            '$order_id', '$id_user', '$gross_amount', 'midtrans', 'pending', '$curr_time', '$shipping_cost', '$item_details_string'
         )
     ";
 
