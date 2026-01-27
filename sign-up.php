@@ -8,67 +8,68 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-    $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
+  $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+  $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+  $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
+  $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-    // Validasi dasar
-    if (empty($email) || empty($username) || empty($phone) || empty($password)) {
-        $error = "Semua field wajib diisi.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Format email tidak valid.";
-    } elseif (strlen($password) < 6) {
-        $error = "Password minimal 6 karakter.";
+  // Validasi dasar
+  if (empty($email) || empty($username) || empty($phone) || empty($password)) {
+    $error = "Semua field wajib diisi.";
+  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $error = "Format email tidak valid.";
+  } elseif (strlen($password) < 6) {
+    $error = "Password minimal 6 karakter.";
+  } else {
+    // Cek apakah email atau username sudah ada (menggunakan mysqli)
+    $stmt = $koneksi->prepare("SELECT id_user FROM tabel_user WHERE email = ? OR username = ?");
+    if (!$stmt) {
+      $error = "Error prepare: " . $koneksi->error;
     } else {
-        // Cek apakah email atau username sudah ada (menggunakan mysqli)
-        $stmt = $koneksi->prepare("SELECT id_user FROM tabel_user WHERE email = ? OR username = ?");
+      $stmt->bind_param("ss", $email, $username);
+      if ($stmt->execute()) {
+        $result = $stmt->get_result();
+      } else {
+        $result = false; // Handle execution failure
+      }
+
+      if ($result && $result->num_rows > 0) {
+        $error = "Email atau username sudah digunakan.";
+      } else {
+        // Hash password
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Simpan ke database (menggunakan mysqli)
+        // Sesuaikan nama kolom dengan tabel tabel_user yang ada
+        $stmt = $koneksi->prepare("INSERT INTO tabel_user (email, username, phone, password) VALUES (?, ?, ?, ?)");
         if (!$stmt) {
-            $error = "Error prepare: " . $koneksi->error;
+          $error = "Error prepare: " . $koneksi->error;
         } else {
-            $stmt->bind_param("ss", $email, $username);
-            if ($stmt->execute()) {
-                $result = $stmt->get_result();
-            } else {
-                $result = false; // Handle execution failure
-            }
+          $stmt->bind_param("ssss", $email, $username, $phone, $hashedPassword);
 
-            if ($result && $result->num_rows > 0) {
-                $error = "Email atau username sudah digunakan.";
-            } else {
-                // Hash password
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-                // Simpan ke database (menggunakan mysqli)
-                // Sesuaikan nama kolom dengan tabel tabel_user yang ada
-                $stmt = $koneksi->prepare("INSERT INTO tabel_user (email, username, phone, password) VALUES (?, ?, ?, ?)");
-                if (!$stmt) {
-                    $error = "Error prepare: " . $koneksi->error;
-                } else {
-                    $stmt->bind_param("ssss", $email, $username, $phone, $hashedPassword);
-
-                    if ($stmt->execute()) {
-                        $success = "Akun berhasil dibuat! Selamat datang, " . htmlspecialchars($username) . " ☕";
-                        // Redirect ke login setelah 2 detik (opsional)
-                        header("Refresh: 2; url=login.php");
-                    } else {
-                        $error = "Terjadi kesalahan saat menyimpan data: " . $stmt->error;
-                    }
-                    $stmt->close();
-                }
-            }
+          if ($stmt->execute()) {
+            $success = "Akun berhasil dibuat! Selamat datang, " . htmlspecialchars($username) . " ☕";
+            // Redirect ke login setelah 2 detik (opsional)
+            header("Refresh: 2; url=login.php");
+          } else {
+            $error = "Terjadi kesalahan saat menyimpan data: " . $stmt->error;
+          }
+          $stmt->close();
         }
+      }
     }
+  }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BrewBeans Sign Up</title>
-  
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400,700" rel="stylesheet">
@@ -113,11 +114,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .auth-content {
       position: relative;
       z-index: 1;
-      min-height: calc(100vh - 80px);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 60px 20px;
+      padding: 120px 20px 60px 20px;
     }
 
     .auth-card {
@@ -128,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       max-width: 480px;
       padding: 50px 40px;
       border-radius: 24px;
-      box-shadow: 
+      box-shadow:
         0 25px 50px -12px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1);
       text-align: center;
@@ -140,6 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         opacity: 0;
         transform: translateY(30px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -359,9 +361,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
     }
 
     @keyframes slideDown {
@@ -369,6 +381,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         opacity: 0;
         transform: translateY(-10px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -401,7 +414,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         padding: 35px 22px;
         margin: 20px;
       }
-      
+
       .auth-logo h1 {
         font-size: 26px;
       }
@@ -514,4 +527,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
   </script>
 </body>
+
 </html>

@@ -58,11 +58,12 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BrewBeans Login</title>
-  
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400,700" rel="stylesheet">
@@ -107,11 +108,11 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
     .auth-content {
       position: relative;
       z-index: 1;
-      min-height: calc(100vh - 80px);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 60px 20px;
+      padding: 120px 20px 60px 20px;
     }
 
     .auth-card {
@@ -122,7 +123,7 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
       max-width: 450px;
       padding: 50px 40px;
       border-radius: 24px;
-      box-shadow: 
+      box-shadow:
         0 25px 50px -12px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1);
       text-align: center;
@@ -134,6 +135,7 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
         opacity: 0;
         transform: translateY(30px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -345,9 +347,19 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
     }
 
     @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
     }
 
     /* Navbar styling for auth pages */
@@ -361,7 +373,7 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
         padding: 40px 25px;
         margin: 20px;
       }
-      
+
       .auth-logo h1 {
         font-size: 26px;
       }
@@ -444,4 +456,5 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
   <script src="js/scrollax.min.js"></script>
   <script src="js/main.js"></script>
 </body>
+
 </html>
