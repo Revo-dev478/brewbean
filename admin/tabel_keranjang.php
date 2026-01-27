@@ -227,12 +227,12 @@ if (!$result) {
                                             while ($row = mysqli_fetch_assoc($result)) { ?>
                                                 <tr>
                                                     <td><?= $row['id_keranjang'] ?></td>
-                                                    <td><strong><?= htmlspecialchars($row['username']) ?></strong></td>
+                                                    <td><strong><?= htmlspecialchars($row['username'] ?? 'Unknown') ?></strong></td>
 
                                                     <td class="text-center">
                                                         <?php if (!empty($row['gambar'])): ?>
-                                                            <img src="../images/<?= htmlspecialchars($row['gambar']) ?>"
-                                                                alt="<?= htmlspecialchars($row['nama_product']) ?>"
+                                                            <img src="../images/<?= htmlspecialchars($row['gambar'] ?? '') ?>"
+                                                                alt="<?= htmlspecialchars($row['nama_product'] ?? 'Product') ?>"
                                                                 width="60"
                                                                 height="60"
                                                                 style="object-fit: cover;"
@@ -246,7 +246,7 @@ if (!$result) {
                                                         <?php endif; ?>
                                                     </td>
 
-                                                    <td><?= htmlspecialchars($row['nama_product']) ?></td>
+                                                    <td><?= htmlspecialchars($row['nama_product'] ?? 'Product tidak ditemukan') ?></td>
                                                     <td><?= $row['qty'] ?></td>
                                                     <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
                                                     <td><strong>Rp <?= number_format($row['subtotal'], 0, ',', '.') ?></strong></td>
