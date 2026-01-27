@@ -23,11 +23,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $pass = isset($_POST['password']) ? $_POST['password'] : '';
 
   if (empty($email) || empty($pass)) {
-    $error = "Email dan password wajib diisi.";
+    $error = "Username/Email dan password wajib diisi.";
   } else {
-    // Gunakan mysqli prepared statement
-    $stmt = $koneksi->prepare("SELECT id_user, username, email, password FROM tabel_user WHERE email = ?");
-    $stmt->bind_param("s", $email);
+    // ===================== ADMIN LOGIN CHECK =====================
+    // Cek apakah login sebagai admin (hardcoded credentials)
+    if ($email === 'admin' && $pass === 'admin') {
+      $_SESSION['id_user'] = 0; // Special admin ID
+      $_SESSION['email'] = 'admin@brewbeans.com';
+      $_SESSION['username'] = 'Administrator';
+      $_SESSION['is_admin'] = true;
+
+      // Redirect ke admin dashboard
+      header("Location: admin/index.php");
+      exit();
+    }
+    // ===================== END ADMIN CHECK =====================
+
+    // Gunakan mysqli prepared statement untuk user biasa
+    // Cek berdasarkan email ATAU username
+    $stmt = $koneksi->prepare("SELECT id_user, username, email, password FROM tabel_user WHERE email = ? OR username = ?");
+    $stmt->bind_param("ss", $email, $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -38,15 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['id_user'] = $user['id_user'];
         $_SESSION['email'] = $user['email'];
         $_SESSION['username'] = $user['username'];
+        $_SESSION['is_admin'] = false;
 
         // gunakan redirect yang sudah disanitasi
         header("Location: " . $redirect);
         exit();
       } else {
-        $error = "Email atau password salah.";
+        $error = "Username/Email atau password salah.";
       }
     } else {
-      $error = "Email atau password salah.";
+      $error = "Username/Email atau password salah.";
     }
     $stmt->close();
   }
@@ -402,8 +418,8 @@ $formAction = 'login.php' . (isset($_GET['redirect']) ? '?redirect=' . urlencode
 
         <form method="POST" action="<?php echo htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8'); ?>">
           <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" class="auth-input" placeholder="Enter your email" required />
+            <label for="email">Username / Email</label>
+            <input type="text" id="email" name="email" class="auth-input" placeholder="Enter username or email" required />
           </div>
           <div class="form-group">
             <label for="password">Password</label>
