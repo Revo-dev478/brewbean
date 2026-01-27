@@ -6,8 +6,7 @@
  * DESIGN: Sesuai tema CoffeeBlend
  */
 
-// Start session and load config for navbar
-session_start();
+// Load config first - it handles session properly with correct cookie params
 require_once 'config.php';
 
 error_reporting(0);
