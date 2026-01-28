@@ -3,6 +3,15 @@ session_start();
 require_once 'config.php';
 
 $siteTitle = "Coffee - Brewbeans Coffee Bandung";
+
+// Safety check for DB connection
+if (!isset($koneksi) || !$koneksi) {
+	// If config.php didn't create $koneksi (or set it to false)
+	// We can't query the DB, but the page should still load static content.
+	// Ensure $db_error is set for the alert below
+	if (!isset($db_error)) $db_error = "Koneksi database terputus";
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -8,53 +8,58 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-  $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-  $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-  $password = isset($_POST['password']) ? $_POST['password'] : '';
-
-  // Validasi dasar
-  if (empty($email) || empty($username) || empty($phone) || empty($password)) {
-    $error = "Semua field wajib diisi.";
-  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error = "Format email tidak valid.";
-  } elseif (strlen($password) < 6) {
-    $error = "Password minimal 6 karakter.";
+  // Check DB Connection first
+  if (!$koneksi) {
+    $error = "Terjadi gangguan koneksi database. Silakan coba lagi nanti.";
   } else {
-    // Cek apakah email atau username sudah ada (menggunakan mysqli)
-    $stmt = $koneksi->prepare("SELECT id_user FROM tabel_user WHERE email = ? OR username = ?");
-    if (!$stmt) {
-      $error = "Error prepare: " . $koneksi->error;
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+    $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+
+    // Validasi dasar
+    if (empty($email) || empty($username) || empty($phone) || empty($password)) {
+      $error = "Semua field wajib diisi.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $error = "Format email tidak valid.";
+    } elseif (strlen($password) < 6) {
+      $error = "Password minimal 6 karakter.";
     } else {
-      $stmt->bind_param("ss", $email, $username);
-      if ($stmt->execute()) {
-        $result = $stmt->get_result();
+      // Cek apakah email atau username sudah ada (menggunakan mysqli)
+      $stmt = $koneksi->prepare("SELECT id_user FROM tabel_user WHERE email = ? OR username = ?");
+      if (!$stmt) {
+        $error = "Error prepare: " . $koneksi->error;
       } else {
-        $result = false; // Handle execution failure
-      }
-
-      if ($result && $result->num_rows > 0) {
-        $error = "Email atau username sudah digunakan.";
-      } else {
-        // Hash password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Simpan ke database (menggunakan mysqli)
-        // Sesuaikan nama kolom dengan tabel tabel_user yang ada
-        $stmt = $koneksi->prepare("INSERT INTO tabel_user (email, username, phone, password) VALUES (?, ?, ?, ?)");
-        if (!$stmt) {
-          $error = "Error prepare: " . $koneksi->error;
+        $stmt->bind_param("ss", $email, $username);
+        if ($stmt->execute()) {
+          $result = $stmt->get_result();
         } else {
-          $stmt->bind_param("ssss", $email, $username, $phone, $hashedPassword);
+          $result = false; // Handle execution failure
+        }
 
-          if ($stmt->execute()) {
-            $success = "Akun berhasil dibuat! Selamat datang, " . htmlspecialchars($username) . " ☕";
-            // Redirect ke login setelah 2 detik (opsional)
-            header("Refresh: 2; url=login.php");
+        if ($result && $result->num_rows > 0) {
+          $error = "Email atau username sudah digunakan.";
+        } else {
+          // Hash password
+          $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+          // Simpan ke database (menggunakan mysqli)
+          // Sesuaikan nama kolom dengan tabel tabel_user yang ada
+          $stmt = $koneksi->prepare("INSERT INTO tabel_user (email, username, phone, password) VALUES (?, ?, ?, ?)");
+          if (!$stmt) {
+            $error = "Error prepare: " . $koneksi->error;
           } else {
-            $error = "Terjadi kesalahan saat menyimpan data: " . $stmt->error;
+            $stmt->bind_param("ssss", $email, $username, $phone, $hashedPassword);
+
+            if ($stmt->execute()) {
+              $success = "Akun berhasil dibuat! Selamat datang, " . htmlspecialchars($username) . " ☕";
+              // Redirect ke login setelah 2 detik (opsional)
+              header("Refresh: 2; url=login.php");
+            } else {
+              $error = "Terjadi kesalahan saat menyimpan data: " . $stmt->error;
+            }
+            $stmt->close();
           }
-          $stmt->close();
         }
       }
     }

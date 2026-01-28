@@ -12,17 +12,26 @@ if (!isset($_SESSION['id_user'])) {
 $id_user = $_SESSION['id_user'];
 
 // --- PERBAIKAN UTAMA: HITUNG TOTAL DARI DATABASE ---
-$query_keranjang = "SELECT k.qty, p.nama_product, p.harga, p.gambar 
-                    FROM tabel_keranjang k 
-                    JOIN tabel_product p ON k.id_product = p.id_product 
-                    WHERE k.id_user = '$id_user'";
-$result_keranjang = mysqli_query($koneksi, $query_keranjang);
-
 $subtotal_belanja = 0;
 $total_qty = 0;
-while ($row = mysqli_fetch_assoc($result_keranjang)) {
-    $subtotal_belanja += ($row['harga'] * $row['qty']);
-    $total_qty += $row['qty'];
+
+if ($koneksi) {
+    $query_keranjang = "SELECT k.qty, p.nama_product, p.harga, p.gambar 
+                        FROM tabel_keranjang k 
+                        JOIN tabel_product p ON k.id_product = p.id_product 
+                        WHERE k.id_user = '$id_user'";
+    $result_keranjang = mysqli_query($koneksi, $query_keranjang);
+
+    if ($result_keranjang) {
+        while ($row = mysqli_fetch_assoc($result_keranjang)) {
+            $subtotal_belanja += ($row['harga'] * $row['qty']);
+            $total_qty += $row['qty'];
+        }
+    }
+} else {
+    // DB Error handling handled by alert below or redirect
+    echo "<script>alert('Gagal terhubung ke database. Silakan coba lagi nanti.'); window.location='menu.php';</script>";
+    exit();
 }
 // Default berat: 250g per item (karena kolom berat tidak ada di DB)
 $total_berat = $total_qty * 250;
