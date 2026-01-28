@@ -12,7 +12,7 @@ if (isset($_POST['simpan'])) {
     $tanggal = $_POST['tanggal'];
     mysqli_query($koneksi, "INSERT INTO users (nama, password, tempat, umur, tanggal) 
                           VALUES ('$nama', '$password', '$tempat', '$umur', '$tanggal')");
-    header("Location: tables.penjual.php");
+    header("Location: tabel_penjual.php");
     exit;
 }
 
@@ -28,7 +28,7 @@ if (isset($_POST['update'])) {
     mysqli_query($koneksi, "UPDATE users SET 
     nama='$nama', password='$password', tempat='$tempat',
     umur='$umur', tanggal='$tanggal' WHERE id=$id");
-    header("Location: tabel.penjual.php");
+    header("Location: tabel_penjual.php");
     exit;
 }
 
@@ -36,7 +36,7 @@ if (isset($_POST['update'])) {
 if (isset($_GET['hapus'])) {
     $id = $_GET['hapus'];
     mysqli_query($koneksi, "DELETE FROM users WHERE id=$id");
-    header("Location: tables.penjual.php");
+    header("Location: tabel_penjual.php");
     exit;
 }
 ?>
