@@ -28,7 +28,7 @@ if (isset($_POST['update'])) {
     mysqli_query($koneksi, "UPDATE users SET 
     nama='$nama', password='$password', tempat='$tempat',
     umur='$umur', tanggal='$tanggal' WHERE id=$id");
-    header("Location: tables.penjual.php");
+    header("Location: tabel.penjual.php");
     exit;
 }
 
