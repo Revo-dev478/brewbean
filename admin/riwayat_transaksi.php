@@ -18,29 +18,38 @@ $apiUrl = $isProduction ? 'https://api.midtrans.com/v2' : 'https://api.sandbox.m
 // HANDLER UPDATE TRANSAKSI (STATUS PEMBAYARAN & PENGIRIMAN)
 // ----------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btn_update_transaksi'])) {
-    $id_transaksi      = $_POST['id_transaksi'];
-    $order_id          = $_POST['order_id']; // Readonly display mostly, but needed for where clause if id not unique enough
-    $trans_status      = $_POST['transaction_status'];
-    $delivery_status   = $_POST['delivery_status'];
-
-    // Update Query
-    $updateQuery = "UPDATE transaksi_midtrans SET transaction_status = ?, delivery_status = ? WHERE id_transaksi = ?";
-    $stmt = $koneksi->prepare($updateQuery);
-    $stmt->bind_param("ssi", $trans_status, $delivery_status, $id_transaksi);
-
-    if ($stmt->execute()) {
-        $_SESSION['flash_message'] = "Data transaksi berhasil diperbarui!";
-        $_SESSION['flash_type'] = "success";
-
-        // Optional: Update checkout status too if payment status changed to settlement
-        if ($trans_status == 'settlement' || $trans_status == 'capture') {
-            mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'success' WHERE order_id = '$order_id'");
-        }
-    } else {
-        $_SESSION['flash_message'] = "Gagal update transaksi: " . $koneksi->error;
+    if (!$koneksi) {
+        $_SESSION['flash_message'] = "Koneksi database terputus!";
         $_SESSION['flash_type'] = "danger";
+    } else {
+        $id_transaksi      = $_POST['id_transaksi'];
+        $order_id          = $_POST['order_id'];
+        $trans_status      = $_POST['transaction_status'];
+        $delivery_status   = $_POST['delivery_status'];
+
+        // Update Query
+        $updateQuery = "UPDATE transaksi_midtrans SET transaction_status = ?, delivery_status = ? WHERE id_transaksi = ?";
+        $stmt = $koneksi->prepare($updateQuery);
+        if ($stmt) {
+            $stmt->bind_param("ssi", $trans_status, $delivery_status, $id_transaksi);
+
+            if ($stmt->execute()) {
+                $_SESSION['flash_message'] = "Data transaksi berhasil diperbarui!";
+                $_SESSION['flash_type'] = "success";
+
+                if ($trans_status == 'settlement' || $trans_status == 'capture') {
+                    mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'success' WHERE order_id = '$order_id'");
+                }
+            } else {
+                $_SESSION['flash_message'] = "Gagal update transaksi: " . $koneksi->error;
+                $_SESSION['flash_type'] = "danger";
+            }
+            $stmt->close();
+        } else {
+            $_SESSION['flash_message'] = "Gagal prepare statement: " . $koneksi->error;
+            $_SESSION['flash_type'] = "danger";
+        }
     }
-    $stmt->close();
 
     // Redirect
     header("Location: riwayat_transaksi.php");
@@ -141,9 +150,10 @@ $syncCount = 0;
 // Copied logic from previous file to ensure auto-sync still works
 
 // AUTO-SYNC LOGIC (ON PAGE LOAD)
-// Limit to recent pending transactions to avoid performance issues
-$startTime = time();
-$syncQuery = mysqli_query($koneksi, "SELECT id_transaksi, order_id FROM transaksi_midtrans WHERE transaction_status IN ('pending', 'authorize', 'capture') ORDER BY transaction_time DESC LIMIT 10");
+$syncQuery = false;
+if ($koneksi) {
+    $syncQuery = mysqli_query($koneksi, "SELECT id_transaksi, order_id FROM transaksi_midtrans WHERE transaction_status IN ('pending', 'authorize', 'capture') ORDER BY transaction_time DESC LIMIT 10");
+}
 
 if ($syncQuery) {
     while ($row = mysqli_fetch_assoc($syncQuery)) {
@@ -155,17 +165,16 @@ if ($syncQuery) {
             $newStatus = $midtransStatus['transaction_status'];
 
             // Update if status changed
-            // We blindly update here to ensure latest status, or check if changed first. 
-            // Updating properly:
-            mysqli_query($koneksi, "UPDATE transaksi_midtrans SET transaction_status = '$newStatus' WHERE id_transaksi = '" . $row['id_transaksi'] . "'");
+            if ($koneksi) {
+                mysqli_query($koneksi, "UPDATE transaksi_midtrans SET transaction_status = '$newStatus' WHERE id_transaksi = '" . $row['id_transaksi'] . "'");
 
-            // Update Checkout Status
-            if ($newStatus == 'settlement' || $newStatus == 'capture') {
-                mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'success' WHERE order_id = '" . $row['order_id'] . "'");
-            } elseif (in_array($newStatus, ['deny', 'cancel', 'expire', 'failure'])) {
-                mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'failed' WHERE order_id = '" . $row['order_id'] . "'");
+                // Update Checkout Status
+                if ($newStatus == 'settlement' || $newStatus == 'capture') {
+                    mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'success' WHERE order_id = '" . $row['order_id'] . "'");
+                } elseif (in_array($newStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+                    mysqli_query($koneksi, "UPDATE checkout SET status_checkout = 'failed' WHERE order_id = '" . $row['order_id'] . "'");
+                }
             }
-
             $syncCount++;
         }
     }
@@ -282,7 +291,7 @@ if ($koneksi) {
                                         <?php
                                         $no = 1;
                                         // FIX: Proper loop dengan error checking
-                                        if (mysqli_num_rows($result) > 0) {
+                                        if ($result && mysqli_num_rows($result) > 0) {
                                             while ($row = mysqli_fetch_assoc($result)):
                                         ?>
                                                 <?php

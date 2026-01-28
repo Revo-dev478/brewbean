@@ -13,11 +13,11 @@ require_once 'config.php';
 \Midtrans\Config::$isSanitized = true;
 \Midtrans\Config::$is3ds = true;
 
-// Koneksi database
-$koneksi = new mysqli('localhost', 'root', '', 'db_brewbeans');
-if ($koneksi->connect_error) {
+// Koneksi database diambil dari config.php
+// Pastikan $koneksi tersedia
+if (!isset($koneksi) || !$koneksi) {
     http_response_code(500);
-    error_log("Database connection failed: " . $koneksi->connect_error);
+    error_log("Database connection failed via config.php");
     exit;
 }
 

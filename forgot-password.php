@@ -11,19 +11,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email)) {
         $error = "Please enter your email address.";
     } else {
-        // Check if email exists
-        $stmt = $koneksi->prepare("SELECT id_user FROM tabel_user WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        if ($koneksi) {
+            // Check if email exists
+            $stmt = $koneksi->prepare("SELECT id_user FROM tabel_user WHERE email = ?");
+            if ($stmt) {
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $result = $stmt->get_result();
 
-        if ($result->num_rows > 0) {
-            // Simulation: In a real app, send email here.
-            $message = "A reset link has been sent to " . htmlspecialchars($email) . " (Simulation)";
+                if ($result->num_rows > 0) {
+                    // Simulation: In a real app, send email here.
+                    $message = "A reset link has been sent to " . htmlspecialchars($email) . " (Simulation)";
+                } else {
+                    $error = "Email address not found.";
+                }
+                $stmt->close();
+            } else {
+                $error = "System error: Unable to prepare statement.";
+            }
         } else {
-            $error = "Email address not found.";
+            $error = "Database connection unavailable. Please try again later.";
         }
-        $stmt->close();
     }
 }
 ?>

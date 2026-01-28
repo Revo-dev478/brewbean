@@ -5,37 +5,43 @@ include 'config.php';
 
 // ==== TAMBAH DATA ====
 if (isset($_POST['simpan'])) {
-    $nama = $_POST['nama'];
-    $password = $_POST['password'];
-    $tempat = $_POST['tempat'];
-    $umur = $_POST['umur'];
-    $tanggal = $_POST['tanggal'];
-    mysqli_query($koneksi, "INSERT INTO tabel_penjual (nama, password, tempat, umur, tanggal) 
-                          VALUES ('$nama', '$password', '$tempat', '$umur', '$tanggal')");
+    if ($koneksi) {
+        $nama = $_POST['nama'];
+        $password = $_POST['password'];
+        $tempat = $_POST['tempat'];
+        $umur = $_POST['umur'];
+        $tanggal = $_POST['tanggal'];
+        mysqli_query($koneksi, "INSERT INTO tabel_penjual (nama, password, tempat, umur, tanggal) 
+                              VALUES ('$nama', '$password', '$tempat', '$umur', '$tanggal')");
+    }
     header("Location: tabel_penjual.php");
     exit;
 }
 
 // ==== EDIT DATA ====
 if (isset($_POST['update'])) {
-    $id = $_POST['id'];
-    $nama = $_POST['nama'];
-    $password = $_POST['password'];
-    $tempat = $_POST['tempat'];
-    $umur = $_POST['umur'];
-    $tanggal = $_POST['tanggal'];
+    if ($koneksi) {
+        $id = $_POST['id'];
+        $nama = $_POST['nama'];
+        $password = $_POST['password'];
+        $tempat = $_POST['tempat'];
+        $umur = $_POST['umur'];
+        $tanggal = $_POST['tanggal'];
 
-    mysqli_query($koneksi, "UPDATE tabel_penjual SET 
-    nama='$nama', password='$password', tempat='$tempat',
-    umur='$umur', tanggal='$tanggal' WHERE id=$id");
+        mysqli_query($koneksi, "UPDATE tabel_penjual SET 
+        nama='$nama', password='$password', tempat='$tempat',
+        umur='$umur', tanggal='$tanggal' WHERE id=$id");
+    }
     header("Location: tabel_penjual.php");
     exit;
 }
 
 // ==== HAPUS DATA ====
 if (isset($_GET['hapus'])) {
-    $id = $_GET['hapus'];
-    mysqli_query($koneksi, "DELETE FROM tabel_penjual WHERE id=$id");
+    if ($koneksi) {
+        $id = $_GET['hapus'];
+        mysqli_query($koneksi, "DELETE FROM tabel_penjual WHERE id=$id");
+    }
     header("Location: tabel_penjual.php");
     exit;
 }
@@ -324,71 +330,77 @@ if (isset($_GET['hapus'])) {
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $data = mysqli_query($koneksi, "SELECT * FROM tabel_penjual ORDER BY id DESC");
-                                        while ($row = mysqli_fetch_assoc($data)) :
+                                        $data = false;
+                                        if ($koneksi) {
+                                            $data = mysqli_query($koneksi, "SELECT * FROM tabel_penjual ORDER BY id DESC");
+                                        }
+
+                                        if ($data):
+                                            while ($row = mysqli_fetch_assoc($data)) :
                                         ?>
-                                            <tr>
-                                                <td><?= htmlspecialchars($row['nama']) ?></td>
-                                                <td><?= htmlspecialchars($row['password']) ?></td>
-                                                <td><?= htmlspecialchars($row['tempat']) ?></td>
-                                                <td><?= htmlspecialchars($row['umur']) ?></td>
-                                                <td><?= htmlspecialchars($row['tanggal']) ?></td>
-                                                <td>
-                                                    <!-- Tombol Edit -->
-                                                    <button
-                                                        class="btn btn-warning btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#modalEdit<?= $row['id'] ?>">Edit</button>
+                                                <tr>
+                                                    <td><?= htmlspecialchars($row['nama']) ?></td>
+                                                    <td><?= htmlspecialchars($row['password']) ?></td>
+                                                    <td><?= htmlspecialchars($row['tempat']) ?></td>
+                                                    <td><?= htmlspecialchars($row['umur']) ?></td>
+                                                    <td><?= htmlspecialchars($row['tanggal']) ?></td>
+                                                    <td>
+                                                        <!-- Tombol Edit -->
+                                                        <button
+                                                            class="btn btn-warning btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalEdit<?= $row['id'] ?>">Edit</button>
 
-                                                    <!-- Tombol Hapus -->
-                                                    <a href="?hapus=<?= $row['id'] ?>"
-                                                        class="btn btn-danger btn-sm"
-                                                        onclick="return confirm('Yakin hapus data ini?')">Hapus</a>
-                                                </td>
-                                            </tr>
+                                                        <!-- Tombol Hapus -->
+                                                        <a href="?hapus=<?= $row['id'] ?>"
+                                                            class="btn btn-danger btn-sm"
+                                                            onclick="return confirm('Yakin hapus data ini?')">Hapus</a>
+                                                    </td>
+                                                </tr>
 
-                                            <!-- MODAL EDIT -->
-                                            <div class="modal fade" id="modalEdit<?= $row['id'] ?>" tabindex="-1">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <form method="post">
-                                                            <div class="modal-header bg-warning">
-                                                                <h5 class="modal-title">Edit Data</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                                <div class="mb-3">
-                                                                    <label>Nama</label>
-                                                                    <input type="text" name="nama" class="form-control" value="<?= $row['nama'] ?>" required>
+                                                <!-- MODAL EDIT -->
+                                                <div class="modal fade" id="modalEdit<?= $row['id'] ?>" tabindex="-1">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <form method="post">
+                                                                <div class="modal-header bg-warning">
+                                                                    <h5 class="modal-title">Edit Data</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <label>Password</label>
-                                                                    <input type="text" name="password" class="form-control" value="<?= $row['password'] ?>" required>
+                                                                <div class="modal-body">
+                                                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                                    <div class="mb-3">
+                                                                        <label>Nama</label>
+                                                                        <input type="text" name="nama" class="form-control" value="<?= $row['nama'] ?>" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label>Password</label>
+                                                                        <input type="text" name="password" class="form-control" value="<?= $row['password'] ?>" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label>Tempat</label>
+                                                                        <input type="text" name="tempat" class="form-control" value="<?= $row['tempat'] ?>" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label>Umur</label>
+                                                                        <input type="number" name="umur" class="form-control" value="<?= $row['umur'] ?>" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label>Tanggal</label>
+                                                                        <input type="date" name="tanggal" class="form-control" value="<?= $row['tanggal'] ?>" required>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <label>Tempat</label>
-                                                                    <input type="text" name="tempat" class="form-control" value="<?= $row['tempat'] ?>" required>
+                                                                <div class="modal-footer">
+                                                                    <button type="submit" name="update" class="btn btn-warning">Update</button>
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <label>Umur</label>
-                                                                    <input type="number" name="umur" class="form-control" value="<?= $row['umur'] ?>" required>
-                                                                </div>
-                                                                <div class="mb-3">
-                                                                    <label>Tanggal</label>
-                                                                    <input type="date" name="tanggal" class="form-control" value="<?= $row['tanggal'] ?>" required>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="submit" name="update" class="btn btn-warning">Update</button>
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                            </div>
-                                                        </form>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                        <?php endwhile; ?>
+                                        <?php endwhile;
+                                        endif; ?>
                                     </tbody>
                                 </table>
                                 <!-- MODAL TAMBAH -->

@@ -28,16 +28,18 @@ if (isset($_POST['submit'])) {
         move_uploaded_file($tmp, $path);
     }
 
-    mysqli_query($koneksi, "INSERT INTO tabel_product (nama_product, deskripsi, harga, qty, berat, id_kategori, gambar, id_penjual) VALUES(
-            '$nama',
-            '$desk',
-            '$harga',
-            '$qty',
-            '$berat',
-            '$kategori',
-            '$filename',
-            '$penjual'
-        )");
+    if ($koneksi) {
+        mysqli_query($koneksi, "INSERT INTO tabel_product (nama_product, deskripsi, harga, qty, berat, id_kategori, gambar, id_penjual) VALUES(
+                '$nama',
+                '$desk',
+                '$harga',
+                '$qty',
+                '$berat',
+                '$kategori',
+                '$filename',
+                '$penjual'
+            )");
+    }
 
     header("Location: daftar-product.php");
 }
@@ -91,9 +93,13 @@ if (isset($_POST['submit'])) {
                 <select name="id_penjual" class="form-control" required>
                     <option value="">-- Pilih Penjual --</option>
                     <?php
-                    $sellers = mysqli_query($koneksi, "SELECT * FROM tabel_penjual");
-                    while ($s = mysqli_fetch_assoc($sellers)) {
-                        echo "<option value='" . $s['id'] . "'>" . $s['nama'] . "</option>";
+                    if ($koneksi) {
+                        $sellers = mysqli_query($koneksi, "SELECT * FROM tabel_penjual");
+                        if ($sellers) {
+                            while ($s = mysqli_fetch_assoc($sellers)) {
+                                echo "<option value='" . $s['id'] . "'>" . $s['nama'] . "</option>";
+                            }
+                        }
                     }
                     ?>
                 </select>

@@ -6,16 +6,19 @@ $isLoggedIn = !empty($_SESSION['id_user']);
 $id_user = $isLoggedIn ? $_SESSION['id_user'] : null;
 
 // Fetch username and cart count if logged in
-if ($isLoggedIn) {
-  $query_user = "SELECT username FROM tabel_user WHERE id_user = '$id_user'";
-  $result_user = mysqli_query($koneksi, $query_user);
-  $user_data = mysqli_fetch_assoc($result_user);
-  $username = $user_data['username'];
+// Fetch username and cart count if logged in
+$username = '';
+$cart_count = 0;
 
-  $q_cart = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM tabel_keranjang WHERE id_user = '$id_user'");
-  $cart_count = mysqli_fetch_assoc($q_cart)['total'];
-} else {
-  $cart_count = 0;
+if ($isLoggedIn && $koneksi) {
+  if ($result_user = mysqli_query($koneksi, $query_user)) {
+    $user_data = mysqli_fetch_assoc($result_user);
+    $username = isset($user_data['username']) ? $user_data['username'] : '';
+  }
+
+  if ($q_cart = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM tabel_keranjang WHERE id_user = '$id_user'")) {
+    $cart_count = mysqli_fetch_assoc($q_cart)['total'];
+  }
 }
 ?>
 <!DOCTYPE html>

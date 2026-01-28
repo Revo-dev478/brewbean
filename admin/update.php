@@ -3,8 +3,15 @@ include 'config.php';
 
 $id = $_GET['id'];
 
-$data = mysqli_query($koneksi, "SELECT * FROM tabel_product WHERE id_product='$id'");
-$row = mysqli_fetch_assoc($data);
+$data = false;
+$row = [];
+if ($koneksi) {
+    $data = mysqli_query($koneksi, "SELECT * FROM tabel_product WHERE id_product='$id'");
+    if ($data) {
+        $row = mysqli_fetch_assoc($data);
+    }
+}
+if (!$row) die("Product not found or Database error");
 
 if (isset($_POST['submit'])) {
 
@@ -21,38 +28,40 @@ if (isset($_POST['submit'])) {
     $filename = $_FILES["gambar"]["name"];
     $tmp = $_FILES["gambar"]["tmp_name"];
 
-    if ($filename != "") {
-        // Perbaikan: Pastikan folder images ada di root
-        if (!is_dir("../images")) {
-            mkdir("../images", 0777, true);
+    if ($koneksi) {
+        if ($filename != "") {
+            // Perbaikan: Pastikan folder images ada di root
+            if (!is_dir("../images")) {
+                mkdir("../images", 0777, true);
+            }
+
+            // Perbaikan: Gunakan nama file unik untuk mencegah bentrok
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            $filename = time() . "_" . uniqid() . "." . $extension;
+            $path = "../images/" . $filename;
+            move_uploaded_file($tmp, $path);
+
+            mysqli_query($koneksi, "UPDATE tabel_product SET 
+                nama_product='$nama',
+                deskripsi='$desk',
+                harga='$harga',
+                qty='$qty',
+                berat='$berat',
+                id_kategori='$kategori',
+                id_penjual='$penjual',
+                gambar='$filename'
+                WHERE id_product='$id'");
+        } else {
+            mysqli_query($koneksi, "UPDATE tabel_product SET 
+                nama_product='$nama',
+                deskripsi='$desk',
+                harga='$harga',
+                qty='$qty',
+                berat='$berat',
+                id_kategori='$kategori',
+                id_penjual='$penjual'
+                WHERE id_product='$id'");
         }
-
-        // Perbaikan: Gunakan nama file unik untuk mencegah bentrok
-        $extension = pathinfo($filename, PATHINFO_EXTENSION);
-        $filename = time() . "_" . uniqid() . "." . $extension;
-        $path = "../images/" . $filename;
-        move_uploaded_file($tmp, $path);
-
-        mysqli_query($koneksi, "UPDATE tabel_product SET 
-            nama_product='$nama',
-            deskripsi='$desk',
-            harga='$harga',
-            qty='$qty',
-            berat='$berat',
-            id_kategori='$kategori',
-            id_penjual='$penjual',
-            gambar='$filename'
-            WHERE id_product='$id'");
-    } else {
-        mysqli_query($koneksi, "UPDATE tabel_product SET 
-            nama_product='$nama',
-            deskripsi='$desk',
-            harga='$harga',
-            qty='$qty',
-            berat='$berat',
-            id_kategori='$kategori',
-            id_penjual='$penjual'
-            WHERE id_product='$id'");
     }
 
     header("Location: daftar-product.php");

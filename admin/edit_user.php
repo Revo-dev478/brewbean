@@ -9,8 +9,15 @@ if (!isset($_GET['id'])) {
 $id = $_GET['id'];
 
 // Mengambil data user berdasarkan ID
-$query = mysqli_query($koneksi, "SELECT * FROM tabel_user WHERE id_user='$id'");
-$user = mysqli_fetch_assoc($query);
+$query = false;
+if ($koneksi) {
+    $query = mysqli_query($koneksi, "SELECT * FROM tabel_user WHERE id_user='$id'");
+}
+
+$user = false;
+if ($query) {
+    $user = mysqli_fetch_assoc($query);
+}
 
 if (!$user) {
     echo "User tidak ditemukan!";
@@ -33,10 +40,10 @@ if (isset($_POST['submit'])) {
         $updateQuery = "UPDATE tabel_user SET username='$username', email='$email', phone='$phone' WHERE id_user='$id'";
     }
 
-    if (mysqli_query($koneksi, $updateQuery)) {
+    if ($koneksi && mysqli_query($koneksi, $updateQuery)) {
         echo "<script>alert('Data user berhasil diupdate!'); window.location='data_user.php';</script>";
     } else {
-        echo "Error: " . mysqli_error($koneksi);
+        echo "Error: " . ($koneksi ? mysqli_error($koneksi) : "Database disconnected");
     }
 }
 ?>

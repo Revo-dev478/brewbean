@@ -4,70 +4,97 @@ include 'config.php';
 
 // ===================== STATISTICS QUERIES =====================
 
-// Total Revenue (settlement only)
-$queryRevenue = "SELECT COALESCE(SUM(gross_amount), 0) as total_revenue 
-                 FROM transaksi_midtrans 
-                 WHERE transaction_status = 'settlement'";
-$resultRevenue = mysqli_query($koneksi, $queryRevenue);
-$totalRevenue = mysqli_fetch_assoc($resultRevenue)['total_revenue'];
-
-// Total Transactions
-$queryTotalTrans = "SELECT COUNT(*) as total FROM transaksi_midtrans";
-$resultTotalTrans = mysqli_query($koneksi, $queryTotalTrans);
-$totalTransactions = mysqli_fetch_assoc($resultTotalTrans)['total'];
-
-// Pending Transactions
-$queryPending = "SELECT COUNT(*) as pending FROM transaksi_midtrans WHERE transaction_status = 'pending'";
-$resultPending = mysqli_query($koneksi, $queryPending);
-$pendingTransactions = mysqli_fetch_assoc($resultPending)['pending'];
-
-// Total Users
-$queryUsers = "SELECT COUNT(*) as total FROM tabel_user";
-$resultUsers = mysqli_query($koneksi, $queryUsers);
-$totalUsers = mysqli_fetch_assoc($resultUsers)['total'];
-
-// Monthly Revenue for Chart (Last 6 months)
+// Initialize default values
+$totalRevenue = 0;
+$totalTransactions = 0;
+$pendingTransactions = 0;
+$totalUsers = 0;
 $monthlyData = [];
 $monthLabels = [];
-for ($i = 5; $i >= 0; $i--) {
-    $month = date('Y-m', strtotime("-$i months"));
-    $monthLabels[] = date('M Y', strtotime("-$i months"));
-
-    $queryMonthly = "SELECT COALESCE(SUM(gross_amount), 0) as revenue 
-                     FROM transaksi_midtrans 
-                     WHERE transaction_status = 'settlement' 
-                     AND DATE_FORMAT(transaction_time, '%Y-%m') = '$month'";
-    $resultMonthly = mysqli_query($koneksi, $queryMonthly);
-    $monthlyData[] = (float) mysqli_fetch_assoc($resultMonthly)['revenue'];
-}
-
-// Transaction Status Distribution
 $statusLabels = [];
 $statusData = [];
 $statusColors = [];
-$colorMap = [
-    'settlement' => '#28a745',
-    'pending' => '#ffc107',
-    'cancel' => '#dc3545',
-    'expire' => '#6c757d',
-    'deny' => '#e74c3c',
-    'failure' => '#c0392b'
-];
+$resultRecent = false;
 
-$queryStatus = "SELECT transaction_status, COUNT(*) as count FROM transaksi_midtrans GROUP BY transaction_status";
-$resultStatus = mysqli_query($koneksi, $queryStatus);
-while ($row = mysqli_fetch_assoc($resultStatus)) {
-    $statusLabels[] = ucfirst($row['transaction_status']);
-    $statusData[] = (int) $row['count'];
-    $statusColors[] = isset($colorMap[$row['transaction_status']]) ? $colorMap[$row['transaction_status']] : '#999999';
+if ($koneksi) {
+    // Total Revenue (settlement only)
+    $queryRevenue = "SELECT COALESCE(SUM(gross_amount), 0) as total_revenue 
+                     FROM transaksi_midtrans 
+                     WHERE transaction_status = 'settlement'";
+    $resultRevenue = mysqli_query($koneksi, $queryRevenue);
+    if ($resultRevenue) {
+        $totalRevenue = mysqli_fetch_assoc($resultRevenue)['total_revenue'];
+    }
+
+    // Total Transactions
+    $queryTotalTrans = "SELECT COUNT(*) as total FROM transaksi_midtrans";
+    $resultTotalTrans = mysqli_query($koneksi, $queryTotalTrans);
+    if ($resultTotalTrans) {
+        $totalTransactions = mysqli_fetch_assoc($resultTotalTrans)['total'];
+    }
+
+    // Pending Transactions
+    $queryPending = "SELECT COUNT(*) as pending FROM transaksi_midtrans WHERE transaction_status = 'pending'";
+    $resultPending = mysqli_query($koneksi, $queryPending);
+    if ($resultPending) {
+        $pendingTransactions = mysqli_fetch_assoc($resultPending)['pending'];
+    }
+
+    // Total Users
+    $queryUsers = "SELECT COUNT(*) as total FROM tabel_user";
+    $resultUsers = mysqli_query($koneksi, $queryUsers);
+    if ($resultUsers) {
+        $totalUsers = mysqli_fetch_assoc($resultUsers)['total'];
+    }
+
+    // Monthly Revenue for Chart (Last 6 months)
+    for ($i = 5; $i >= 0; $i--) {
+        $month = date('Y-m', strtotime("-$i months"));
+        $monthLabels[] = date('M Y', strtotime("-$i months"));
+
+        $queryMonthly = "SELECT COALESCE(SUM(gross_amount), 0) as revenue 
+                         FROM transaksi_midtrans 
+                         WHERE transaction_status = 'settlement' 
+                         AND DATE_FORMAT(transaction_time, '%Y-%m') = '$month'";
+        $resultMonthly = mysqli_query($koneksi, $queryMonthly);
+        if ($resultMonthly) {
+            $monthlyData[] = (float) mysqli_fetch_assoc($resultMonthly)['revenue'];
+        } else {
+            $monthlyData[] = 0;
+        }
+    }
+
+    // Transaction Status Distribution
+    $colorMap = [
+        'settlement' => '#28a745',
+        'pending' => '#ffc107',
+        'cancel' => '#dc3545',
+        'expire' => '#6c757d',
+        'deny' => '#e74c3c',
+        'failure' => '#c0392b'
+    ];
+
+    $queryStatus = "SELECT transaction_status, COUNT(*) as count FROM transaksi_midtrans GROUP BY transaction_status";
+    $resultStatus = mysqli_query($koneksi, $queryStatus);
+    if ($resultStatus) {
+        while ($row = mysqli_fetch_assoc($resultStatus)) {
+            $statusLabels[] = ucfirst($row['transaction_status']);
+            $statusData[] = (int) $row['count'];
+            $statusColors[] = isset($colorMap[$row['transaction_status']]) ? $colorMap[$row['transaction_status']] : '#999999';
+        }
+    }
+
+    // Recent Transactions
+    $queryRecent = "SELECT t.order_id, t.gross_amount, t.transaction_status, t.transaction_time, u.username 
+                    FROM transaksi_midtrans t 
+                    LEFT JOIN tabel_user u ON t.id_user = u.id_user 
+                    ORDER BY t.transaction_time DESC LIMIT 5";
+    $resultRecent = mysqli_query($koneksi, $queryRecent);
+} else {
+    // If DB is offline, defaults are already set to 0/empty.
+    // We could add an error message variable to display in the dashboard if desired.
+    $db_dashboard_error = "Database Connection Failed";
 }
-
-// Recent Transactions
-$queryRecent = "SELECT t.order_id, t.gross_amount, t.transaction_status, t.transaction_time, u.username 
-                FROM transaksi_midtrans t 
-                LEFT JOIN tabel_user u ON t.id_user = u.id_user 
-                ORDER BY t.transaction_time DESC LIMIT 5";
-$resultRecent = mysqli_query($koneksi, $queryRecent);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -298,7 +325,7 @@ $resultRecent = mysqli_query($koneksi, $queryRecent);
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php if (mysqli_num_rows($resultRecent) > 0): ?>
+                                                <?php if ($resultRecent && mysqli_num_rows($resultRecent) > 0): ?>
                                                     <?php while ($row = mysqli_fetch_assoc($resultRecent)): ?>
                                                         <tr>
                                                             <td><code><?= htmlspecialchars($row['order_id']) ?></code></td>

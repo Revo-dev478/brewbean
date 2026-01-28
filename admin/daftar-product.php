@@ -5,37 +5,43 @@ include 'config.php';
 
 // ==== TAMBAH DATA ====
 if (isset($_POST['simpan'])) {
-    $nama = $_POST['nama'];
-    $password = $_POST['password'];
-    $tempat = $_POST['tempat'];
-    $umur = $_POST['umur'];
-    $tanggal = $_POST['tanggal'];
-    mysqli_query($koneksi, "INSERT INTO users (nama, password, tempat, umur, tanggal) 
-                          VALUES ('$nama', '$password', '$tempat', '$umur', '$tanggal')");
+    if ($koneksi) {
+        $nama = $_POST['nama'];
+        $password = $_POST['password'];
+        $tempat = $_POST['tempat'];
+        $umur = $_POST['umur'];
+        $tanggal = $_POST['tanggal'];
+        mysqli_query($koneksi, "INSERT INTO users (nama, password, tempat, umur, tanggal) 
+                              VALUES ('$nama', '$password', '$tempat', '$umur', '$tanggal')");
+    }
     header("Location: tables.penjual.php");
     exit;
 }
 
 // ==== EDIT DATA ====
 if (isset($_POST['update'])) {
-    $id = $_POST['id'];
-    $nama = $_POST['nama'];
-    $password = $_POST['password'];
-    $tempat = $_POST['tempat'];
-    $umur = $_POST['umur'];
-    $tanggal = $_POST['tanggal'];
+    if ($koneksi) {
+        $id = $_POST['id'];
+        $nama = $_POST['nama'];
+        $password = $_POST['password'];
+        $tempat = $_POST['tempat'];
+        $umur = $_POST['umur'];
+        $tanggal = $_POST['tanggal'];
 
-    mysqli_query($koneksi, "UPDATE users SET 
-    nama='$nama', password='$password', tempat='$tempat',
-    umur='$umur', tanggal='$tanggal' WHERE id=$id");
+        mysqli_query($koneksi, "UPDATE users SET 
+        nama='$nama', password='$password', tempat='$tempat',
+        umur='$umur', tanggal='$tanggal' WHERE id=$id");
+    }
     header("Location: tables.penjual.php");
     exit;
 }
 
 // ==== HAPUS DATA ====
 if (isset($_GET['hapus'])) {
-    $id = $_GET['hapus'];
-    mysqli_query($koneksi, "DELETE FROM users WHERE id=$id");
+    if ($koneksi) {
+        $id = $_GET['hapus'];
+        mysqli_query($koneksi, "DELETE FROM users WHERE id=$id");
+    }
     header("Location: tables.penjual.php");
     exit;
 }
@@ -327,28 +333,34 @@ if (isset($_GET['hapus'])) {
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $result = mysqli_query($koneksi, "SELECT p.*, s.nama as nama_penjual FROM tabel_product p LEFT JOIN tabel_penjual s ON p.id_penjual = s.id");
-                                        while ($row = mysqli_fetch_assoc($result)) { ?>
-                                            <tr>
-                                                <td><?= $row['id_product'] ?></td>
-                                                <td><?= $row['nama_product'] ?></td>
-                                                <td><?= $row['deskripsi'] ?></td>
-                                                <td><?= $row['harga'] ?></td>
-                                                <td><?= $row['qty'] ?></td>
-                                                <td><?= isset($row['berat']) ? $row['berat'] : 1000 ?>g</td>
-                                                <td><?= $row['id_kategori'] ?></td>
-                                                <td><?= isset($row['nama_penjual']) ? $row['nama_penjual'] : '-' ?></td>
-                                                <td>
-                                                    <?php if ($row['gambar']) { ?>
-                                                        <img src="../images/<?= $row['gambar'] ?>" width="80">
-                                                    <?php } ?>
-                                                </td>
-                                                <td>
-                                                    <a href="update.php?id=<?= $row['id_product'] ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                    <a onclick="return confirm('Yakin hapus?');" href="delete.php?id=<?= $row['id_product'] ?>" class="btn btn-danger btn-sm">Hapus</a>
-                                                </td>
-                                            </tr>
-                                        <?php } ?>
+                                        $result = false;
+                                        if ($koneksi) {
+                                            $result = mysqli_query($koneksi, "SELECT p.*, s.nama as nama_penjual FROM tabel_product p LEFT JOIN tabel_penjual s ON p.id_penjual = s.id");
+                                        }
+
+                                        if ($result):
+                                            while ($row = mysqli_fetch_assoc($result)) { ?>
+                                                <tr>
+                                                    <td><?= $row['id_product'] ?></td>
+                                                    <td><?= $row['nama_product'] ?></td>
+                                                    <td><?= $row['deskripsi'] ?></td>
+                                                    <td><?= $row['harga'] ?></td>
+                                                    <td><?= $row['qty'] ?></td>
+                                                    <td><?= isset($row['berat']) ? $row['berat'] : 1000 ?>g</td>
+                                                    <td><?= $row['id_kategori'] ?></td>
+                                                    <td><?= isset($row['nama_penjual']) ? $row['nama_penjual'] : '-' ?></td>
+                                                    <td>
+                                                        <?php if ($row['gambar']) { ?>
+                                                            <img src="../images/<?= $row['gambar'] ?>" width="80">
+                                                        <?php } ?>
+                                                    </td>
+                                                    <td>
+                                                        <a href="update.php?id=<?= $row['id_product'] ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                        <a onclick="return confirm('Yakin hapus?');" href="delete.php?id=<?= $row['id_product'] ?>" class="btn btn-danger btn-sm">Hapus</a>
+                                                    </td>
+                                                </tr>
+                                        <?php }
+                                        endif; ?>
                                     </tbody>
                                 </table>
                             </div>

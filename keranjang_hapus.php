@@ -17,7 +17,7 @@ if (isset($_POST['id_keranjang'])) {
     // Hapus data
     $query = "DELETE FROM tabel_keranjang WHERE id_keranjang = $id_keranjang AND id_user = $id_user";
 
-    if (mysqli_query($koneksi, $query)) {
+    if (isset($koneksi) && $koneksi && mysqli_query($koneksi, $query)) {
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Gagal menghapus data']);
@@ -25,4 +25,3 @@ if (isset($_POST['id_keranjang'])) {
 } else {
     echo json_encode(['success' => false, 'message' => 'ID tidak ditemukan']);
 }
-?>

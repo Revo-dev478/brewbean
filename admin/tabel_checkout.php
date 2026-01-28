@@ -10,22 +10,32 @@ require_once '../config.php';
 
 // HANDLE POST REQUEST (UPDATE DATA)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btn_update_checkout'])) {
-    $id_checkout = $_POST['id_checkout'];
-    $status      = $_POST['status'];
-    $metode      = $_POST['metode'];
-    $total       = $_POST['total'];
-
-    $update = $koneksi->prepare('UPDATE checkout SET status_checkout = ?, metode_pembayaran = ?, total_harga = ? WHERE id_checkout = ?');
-    $update->bind_param('ssii', $status, $metode, $total, $id_checkout);
-
-    if ($update->execute()) {
-        $_SESSION['flash_message'] = "Data checkout berhasil diperbarui!";
-        $_SESSION['flash_type'] = "success";
-    } else {
-        $_SESSION['flash_message'] = "Gagal memperbarui data: " . $koneksi->error;
+    if (!$koneksi) {
+        $_SESSION['flash_message'] = "Koneksi database terputus!";
         $_SESSION['flash_type'] = "danger";
+    } else {
+        $id_checkout = $_POST['id_checkout'];
+        $status      = $_POST['status'];
+        $metode      = $_POST['metode'];
+        $total       = $_POST['total'];
+
+        $update = $koneksi->prepare('UPDATE checkout SET status_checkout = ?, metode_pembayaran = ?, total_harga = ? WHERE id_checkout = ?');
+        if ($update) {
+            $update->bind_param('ssii', $status, $metode, $total, $id_checkout);
+
+            if ($update->execute()) {
+                $_SESSION['flash_message'] = "Data checkout berhasil diperbarui!";
+                $_SESSION['flash_type'] = "success";
+            } else {
+                $_SESSION['flash_message'] = "Gagal memperbarui data: " . $koneksi->error;
+                $_SESSION['flash_type'] = "danger";
+            }
+            $update->close();
+        } else {
+            $_SESSION['flash_message'] = "Prepare failed: " . $koneksi->error;
+            $_SESSION['flash_type'] = "danger";
+        }
     }
-    $update->close();
 
     header('Location: tabel_checkout.php');
     exit;
@@ -53,9 +63,12 @@ $sql = "
     ORDER BY c.created_at DESC
 ";
 
-$result = mysqli_query($koneksi, $sql);
-if (!$result) {
-    die('Query error: ' . mysqli_error($koneksi));
+$result = false;
+if ($koneksi) {
+    $result = mysqli_query($koneksi, $sql);
+    if (!$result) {
+        die('Query error: ' . mysqli_error($koneksi));
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -129,7 +142,7 @@ if (!$result) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (mysqli_num_rows($result) > 0): ?>
+                                        <?php if ($result && mysqli_num_rows($result) > 0): ?>
                                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                                 <?php
                                                 $username = isset($row['username']) && $row['username'] !== '' ? $row['username'] : '-';
@@ -169,9 +182,13 @@ if (!$result) {
                                                 // Fetch Items
                                                 $orderId = $row['order_id'];
                                                 $items = [];
-                                                $qItems = mysqli_query($koneksi, "SELECT product_name, quantity FROM checkout_item WHERE order_id = '$orderId'");
-                                                while ($item = mysqli_fetch_assoc($qItems)) {
-                                                    $items[] = $item['product_name'] . " <span class='badge badge-light'>x" . $item['quantity'] . "</span>";
+                                                if ($koneksi) {
+                                                    $qItems = mysqli_query($koneksi, "SELECT product_name, quantity FROM checkout_item WHERE order_id = '$orderId'");
+                                                    if ($qItems) {
+                                                        while ($item = mysqli_fetch_assoc($qItems)) {
+                                                            $items[] = $item['product_name'] . " <span class='badge badge-light'>x" . $item['quantity'] . "</span>";
+                                                        }
+                                                    }
                                                 }
                                                 $itemsHtml = implode('<br>', $items);
                                                 ?>

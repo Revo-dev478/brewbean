@@ -51,6 +51,11 @@ $shipping_service = isset($input['shipping_service']) ? $input['shipping_service
 /* ==========================
    INSERT KE TABLE CHECKOUT
    ========================== */
+if (!$koneksi) {
+    echo json_encode(['error' => 'Database connection failed']);
+    exit;
+}
+
 mysqli_query($koneksi, "
     INSERT INTO checkout (
         order_id,
