@@ -39,32 +39,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // ===================== END ADMIN CHECK =====================
 
-    // Gunakan mysqli prepared statement untuk user biasa
-    // Cek berdasarkan email ATAU username
-    $stmt = $koneksi->prepare("SELECT id_user, username, email, password FROM tabel_user WHERE email = ? OR username = ?");
-    $stmt->bind_param("ss", $email, $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-      $user = $result->fetch_assoc();
-      if (password_verify($pass, $user['password'])) {
-        // Simpan session dengan kolom yang benar
-        $_SESSION['id_user'] = $user['id_user'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['is_admin'] = false;
-
-        // gunakan redirect yang sudah disanitasi
-        header("Location: " . $redirect);
-        exit();
-      } else {
-        $error = "Username/Email atau password salah.";
-      }
+    // Safety check: Pastikan koneksi database berhasil
+    if (!$koneksi) {
+      $error = "Layanan login sedang gangguan (Database Error). Silakan coba lagi nanti.";
+      if (isset($db_error)) $error .= " ($db_error)";
     } else {
-      $error = "Username/Email atau password salah.";
+      // Gunakan mysqli prepared statement untuk user biasa
+      // Cek berdasarkan email ATAU username
+      $stmt = $koneksi->prepare("SELECT id_user, username, email, password FROM tabel_user WHERE email = ? OR username = ?");
+
+      if ($stmt) {
+        $stmt->bind_param("ss", $email, $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+          $user = $result->fetch_assoc();
+          if (password_verify($pass, $user['password'])) {
+            // Simpan session dengan kolom yang benar
+            $_SESSION['id_user'] = $user['id_user'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['is_admin'] = false;
+
+            // gunakan redirect yang sudah disanitasi
+            header("Location: " . $redirect);
+            exit();
+          } else {
+            $error = "Username/Email atau password salah.";
+          }
+        } else {
+          $error = "Username/Email atau password salah.";
+        }
+        $stmt->close();
+      } else {
+        $error = "Terjadi kesalahan pada query database.";
+      }
     }
-    $stmt->close();
   }
 }
 
