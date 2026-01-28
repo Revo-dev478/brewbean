@@ -8,23 +8,37 @@ require_once 'config.php';
 //     exit();
 // }
 
-// Query Robusta
-$query_robusta = "SELECT p.*, k.nama_kategori FROM tabel_product p JOIN tabel_kategori k ON p.id_kategori = k.id_kategori WHERE k.nama_kategori = 'Robusta' ORDER BY p.id_product DESC";
-$result_robusta = mysqli_query($koneksi, $query_robusta);
-if (!$result_robusta) die("Error: " . mysqli_error($koneksi));
-$count_robusta = mysqli_num_rows($result_robusta);
+// Initialize counts
+$count_robusta = 0;
+$count_arabika = 0;
+$count_tea = 0;
 
-// Query Arabika
-$query_arabika = "SELECT p.*, k.nama_kategori FROM tabel_product p JOIN tabel_kategori k ON p.id_kategori = k.id_kategori WHERE k.nama_kategori = 'Arabika' ORDER BY p.id_product DESC";
-$result_arabika = mysqli_query($koneksi, $query_arabika);
-if (!$result_arabika) die("Error: " . mysqli_error($koneksi));
-$count_arabika = mysqli_num_rows($result_arabika);
+if ($koneksi) {
+    // Query Robusta
+    $query_robusta = "SELECT p.*, k.nama_kategori FROM tabel_product p JOIN tabel_kategori k ON p.id_kategori = k.id_kategori WHERE k.nama_kategori = 'Robusta' ORDER BY p.id_product DESC";
+    $result_robusta = mysqli_query($koneksi, $query_robusta);
+    if ($result_robusta) {
+        $count_robusta = mysqli_num_rows($result_robusta);
+    }
 
-// Query Tea
-$query_tea = "SELECT p.*, k.nama_kategori FROM tabel_product p JOIN tabel_kategori k ON p.id_kategori = k.id_kategori WHERE k.nama_kategori = 'Tea' ORDER BY p.id_product DESC";
-$result_tea = mysqli_query($koneksi, $query_tea);
-if (!$result_tea) die("Error: " . mysqli_error($koneksi));
-$count_tea = mysqli_num_rows($result_tea);
+    // Query Arabika
+    $query_arabika = "SELECT p.*, k.nama_kategori FROM tabel_product p JOIN tabel_kategori k ON p.id_kategori = k.id_kategori WHERE k.nama_kategori = 'Arabika' ORDER BY p.id_product DESC";
+    $result_arabika = mysqli_query($koneksi, $query_arabika);
+    if ($result_arabika) {
+        $count_arabika = mysqli_num_rows($result_arabika);
+    }
+
+    // Query Tea
+    $query_tea = "SELECT p.*, k.nama_kategori FROM tabel_product p JOIN tabel_kategori k ON p.id_kategori = k.id_kategori WHERE k.nama_kategori = 'Tea' ORDER BY p.id_product DESC";
+    $result_tea = mysqli_query($koneksi, $query_tea);
+    if ($result_tea) {
+        $count_tea = mysqli_num_rows($result_tea);
+    }
+} else {
+    // If DB is down, we just show empty menus (handled by the counts being 0)
+    // Optionally set an error flag for UI
+    $db_error = "Database offline";
+}
 ?>
 
 <!DOCTYPE html>

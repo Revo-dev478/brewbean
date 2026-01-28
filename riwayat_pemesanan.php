@@ -383,10 +383,15 @@ unset($p);
                                         <div class="order-items">
                                             <?php
                                             // Fetch real items from checkout_item table
-                                            $oid = mysqli_real_escape_string($koneksi, $item['order_id']);
-                                            $q_items = mysqli_query($koneksi, "SELECT ci.*, p.gambar FROM checkout_item ci LEFT JOIN tabel_product p ON ci.id_product = p.id_product WHERE ci.order_id = '$oid'");
+                                            // Initial empty result
+                                            $q_items = false;
 
-                                            if (mysqli_num_rows($q_items) > 0):
+                                            if ($koneksi) {
+                                                $oid = mysqli_real_escape_string($koneksi, $item['order_id']);
+                                                $q_items = mysqli_query($koneksi, "SELECT ci.*, p.gambar FROM checkout_item ci LEFT JOIN tabel_product p ON ci.id_product = p.id_product WHERE ci.order_id = '$oid'");
+                                            }
+
+                                            if ($q_items && mysqli_num_rows($q_items) > 0):
                                                 while ($detail = mysqli_fetch_assoc($q_items)):
                                                     $styleBg = !empty($detail['gambar'])
                                                         ? "background-image: url('images/" . $detail['gambar'] . "'); background-size: cover; background-position: center;"

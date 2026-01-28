@@ -11,13 +11,18 @@ $id_user = $_SESSION['id_user'];
 
 // Ambil data user untuk navbar
 $query_user = "SELECT username FROM tabel_user WHERE id_user = '$id_user'";
+
 // Ambil data keranjang
-$query = "SELECT k.*, p.nama_product, p.gambar, p.harga 
-          FROM tabel_keranjang k 
-          JOIN tabel_product p ON k.id_product = p.id_product 
-          WHERE k.id_user = $id_user
-          ORDER BY k.id_keranjang DESC";
-$result = mysqli_query($koneksi, $query);
+if ($koneksi) {
+    $query = "SELECT k.*, p.nama_product, p.gambar, p.harga 
+              FROM tabel_keranjang k 
+              JOIN tabel_product p ON k.id_product = p.id_product 
+              WHERE k.id_user = $id_user
+              ORDER BY k.id_keranjang DESC";
+    $result = mysqli_query($koneksi, $query);
+} else {
+    $result = false;
+}
 ?>
 
 <!DOCTYPE html>
@@ -236,7 +241,7 @@ $result = mysqli_query($koneksi, $query);
             <div class="row">
                 <div class="col-md-12 ftco-animate">
                     <div class="cart-list">
-                        <?php if (mysqli_num_rows($result) > 0): ?>
+                        <?php if ($result && mysqli_num_rows($result) > 0): ?>
                             <table class="table">
                                 <thead class="thead-primary">
                                     <tr class="text-center">
@@ -301,7 +306,7 @@ $result = mysqli_query($koneksi, $query);
                 </div>
             </div>
 
-            <?php if (mysqli_num_rows($result) > 0): ?>
+            <?php if ($result && mysqli_num_rows($result) > 0): ?>
                 <div class="row">
                     <div class="col-md-12 cart-wrap ftco-animate">
                         <div class="cart-total">

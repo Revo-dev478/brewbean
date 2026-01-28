@@ -11,8 +11,11 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $id_product = (int) $_GET['id'];
 
 // Fetch product details (simplified query - no seller join)
-$query = "SELECT * FROM tabel_product WHERE id_product = $id_product";
-$data = mysqli_query($koneksi, $query);
+$data = false;
+if ($koneksi) {
+    $query = "SELECT * FROM tabel_product WHERE id_product = $id_product";
+    $data = mysqli_query($koneksi, $query);
+}
 
 if (!$data || mysqli_num_rows($data) === 0) {
     header("Location: menu.php");
