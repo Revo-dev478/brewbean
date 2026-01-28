@@ -10,7 +10,7 @@ if (isset($_POST['simpan'])) {
     $tempat = $_POST['tempat'];
     $umur = $_POST['umur'];
     $tanggal = $_POST['tanggal'];
-    mysqli_query($koneksi, "INSERT INTO users (nama, password, tempat, umur, tanggal) 
+    mysqli_query($koneksi, "INSERT INTO tabel_penjual (nama, password, tempat, umur, tanggal) 
                           VALUES ('$nama', '$password', '$tempat', '$umur', '$tanggal')");
     header("Location: tabel_penjual.php");
     exit;
@@ -25,7 +25,7 @@ if (isset($_POST['update'])) {
     $umur = $_POST['umur'];
     $tanggal = $_POST['tanggal'];
 
-    mysqli_query($koneksi, "UPDATE users SET 
+    mysqli_query($koneksi, "UPDATE tabel_penjual SET 
     nama='$nama', password='$password', tempat='$tempat',
     umur='$umur', tanggal='$tanggal' WHERE id=$id");
     header("Location: tabel_penjual.php");
@@ -35,7 +35,7 @@ if (isset($_POST['update'])) {
 // ==== HAPUS DATA ====
 if (isset($_GET['hapus'])) {
     $id = $_GET['hapus'];
-    mysqli_query($koneksi, "DELETE FROM users WHERE id=$id");
+    mysqli_query($koneksi, "DELETE FROM tabel_penjual WHERE id=$id");
     header("Location: tabel_penjual.php");
     exit;
 }
