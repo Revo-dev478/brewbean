@@ -43,12 +43,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <li class="nav-item <?= ($current_page == 'contact.php') ? 'active' : '' ?>"><a href="contact.php" class="nav-link">Contact</a></li>
 
                 <?php if ($isLoggedIn): ?>
-                    <li class="nav-item dropdown <?= (in_array($current_page, ['keranjang.php', 'riwayat_pemesanan.php'])) ? 'active' : '' ?>">
+                    <li class="nav-item dropdown <?= (in_array($current_page, ['keranjang.php', 'riwayat_pemesanan.php', 'riwayat_transaksi_user.php'])) ? 'active' : '' ?>">
                         <a class="nav-link dropdown-toggle" href="#" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Shop</a>
                         <div class="dropdown-menu" aria-labelledby="dropdown04">
                             <a class="dropdown-item" href="menu.php">Shop</a>
                             <a class="dropdown-item" href="keranjang.php">Cart</a>
                             <a class="dropdown-item" href="riwayat_pemesanan.php">Pesanan Saya</a>
+                            <a class="dropdown-item" href="riwayat_transaksi_user.php">📋 Riwayat Transaksi</a>
                         </div>
                     </li>
                     <li class="nav-item"><span class="nav-link" style="color: #fff !important;">Hi, <?= htmlspecialchars($username) ?></span></li>
