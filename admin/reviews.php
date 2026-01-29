@@ -29,7 +29,7 @@ if ($koneksi) {
         )");
     }
 
-    $query = "SELECT r.*, p.product_name, p.gambar, u.username, u.email 
+    $query = "SELECT r.*, p.nama_product, p.gambar, u.username, u.email 
               FROM tabel_review r
               LEFT JOIN tabel_product p ON r.id_product = p.id_product
               LEFT JOIN tabel_user u ON r.id_user = u.id_user
@@ -139,7 +139,7 @@ if ($koneksi) {
                                                                     <i class="fas fa-box text-gray-400"></i>
                                                                 </div>
                                                             <?php endif; ?>
-                                                            <?= htmlspecialchars($r['product_name']) ?>
+                                                            <?= htmlspecialchars($r['nama_product']) ?>
                                                         </div>
                                                     </td>
                                                     <td>

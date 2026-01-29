@@ -27,6 +27,44 @@ $product = mysqli_fetch_assoc($data);
 // Set default values for columns that might not exist
 $product['berat'] = isset($product['berat']) ? $product['berat'] : 250;
 $product['nama_penjual'] = 'Official Store';
+
+// Fetch Reviews
+$reviews = [];
+$avg_rating = 0;
+$total_reviews = 0;
+
+if ($koneksi) {
+    // Ensure table exists (Auto-fix)
+    $checkTable = mysqli_query($koneksi, "SHOW TABLES LIKE 'tabel_review'");
+    if (mysqli_num_rows($checkTable) == 0) {
+        mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS tabel_review (
+            id_review INT AUTO_INCREMENT PRIMARY KEY,
+            id_transaksi INT NOT NULL,
+            order_id VARCHAR(50) NOT NULL,
+            id_product INT NOT NULL,
+            id_user INT NOT NULL,
+            rating INT NOT NULL,
+            review_text TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX (order_id),
+            INDEX (id_product),
+            INDEX (id_user)
+        )");
+    }
+
+    // Get reviews
+    $q_reviews = mysqli_query($koneksi, "SELECT r.*, u.username FROM tabel_review r LEFT JOIN tabel_user u ON r.id_user = u.id_user WHERE r.id_product = $id_product ORDER BY r.created_at DESC");
+    if ($q_reviews) {
+        while ($r = mysqli_fetch_assoc($q_reviews)) {
+            $reviews[] = $r;
+            $avg_rating += $r['rating'];
+        }
+        $total_reviews = count($reviews);
+        if ($total_reviews > 0) {
+            $avg_rating = round($avg_rating / $total_reviews, 1);
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -285,6 +323,17 @@ $product['nama_penjual'] = 'Official Store';
                         <div class="col-lg-7">
                             <div class="product-content ftco-animate">
                                 <h1 class="product-title"><?php echo $product['nama_product']; ?></h1>
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="mr-3" style="color: #c49b63;">
+                                        <?php
+                                        $stars = round($avg_rating);
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            echo ($i <= $stars) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+                                        }
+                                        ?>
+                                    </div>
+                                    <span style="color: rgba(255,255,255,0.6);"><?= $avg_rating ?> (<?= $total_reviews ?> Ulasan)</span>
+                                </div>
                                 <p class="product-price">Rp <?php echo number_format($product['harga'], 0, ',', '.'); ?></p>
 
                                 <p class="product-desc"><?php echo $product['deskripsi']; ?></p>
@@ -323,6 +372,51 @@ $product['nama_penjual'] = 'Official Store';
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- REVIEWS SECTION -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-11">
+            <div class="product-detail-card p-4 p-md-5">
+                <h3 class="mb-4 text-white">Ulasan Pembeli (<?= $total_reviews ?>)</h3>
+
+                <?php if (count($reviews) > 0): ?>
+                    <div class="review-list">
+                        <?php foreach ($reviews as $rev): ?>
+                            <div class="review-item mb-4 pb-4" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar mr-3" style="width: 40px; height: 40px; background: #c49b63; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold;">
+                                            <?= strtoupper(substr($rev['username'], 0, 1)) ?>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 text-white"><?= htmlspecialchars($rev['username']) ?></h6>
+                                            <small class="text-muted"><?= date('d M Y', strtotime($rev['created_at'])) ?></small>
+                                        </div>
+                                    </div>
+                                    <div class="text-warning">
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <i class="<?= ($i <= $rev['rating']) ? 'fas' : 'far' ?> fa-star"></i>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                                <?php if (!empty($rev['review_text'])): ?>
+                                    <p class="mb-0 text-white-50 pl-5">
+                                        "<?= nl2br(htmlspecialchars($rev['review_text'])) ?>"
+                                    </p>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center py-5">
+                        <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Belum ada ulasan untuk produk ini.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- SCRIPTS -->
