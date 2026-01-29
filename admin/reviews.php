@@ -11,6 +11,24 @@ if (!isset($_SESSION['username'])) {
 // Fetch reviews
 $reviews = [];
 if ($koneksi) {
+    // Ensure table exists (Auto-fix)
+    $checkTable = mysqli_query($koneksi, "SHOW TABLES LIKE 'tabel_review'");
+    if (mysqli_num_rows($checkTable) == 0) {
+        mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS tabel_review (
+            id_review INT AUTO_INCREMENT PRIMARY KEY,
+            id_transaksi INT NOT NULL,
+            order_id VARCHAR(50) NOT NULL,
+            id_product INT NOT NULL,
+            id_user INT NOT NULL,
+            rating INT NOT NULL,
+            review_text TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX (order_id),
+            INDEX (id_product),
+            INDEX (id_user)
+        )");
+    }
+
     $query = "SELECT r.*, p.product_name, p.gambar, u.username, u.email 
               FROM tabel_review r
               LEFT JOIN tabel_product p ON r.id_product = p.id_product

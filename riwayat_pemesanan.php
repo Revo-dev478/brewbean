@@ -53,15 +53,6 @@ if ($koneksi) {
     }
 }
 
-// Fetch reviewed orders
-$reviewed_orders = [];
-if ($koneksi) {
-    $q_review = mysqli_query($koneksi, "SELECT DISTINCT order_id FROM tabel_review WHERE id_user = '$id_user'");
-    while ($r = mysqli_fetch_assoc($q_review)) {
-        $reviewed_orders[] = $r['order_id'];
-    }
-}
-
 // Set default delivery status if null in database
 foreach ($pesanan as &$p) {
     if (empty($p['delivery_status'])) {
@@ -69,6 +60,37 @@ foreach ($pesanan as &$p) {
     }
 }
 unset($p);
+
+// Ensure review table exists (Auto-fix for missing table error)
+if ($koneksi) {
+    $checkTable = mysqli_query($koneksi, "SHOW TABLES LIKE 'tabel_review'");
+    if (mysqli_num_rows($checkTable) == 0) {
+        mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS tabel_review (
+            id_review INT AUTO_INCREMENT PRIMARY KEY,
+            id_transaksi INT NOT NULL,
+            order_id VARCHAR(50) NOT NULL,
+            id_product INT NOT NULL,
+            id_user INT NOT NULL,
+            rating INT NOT NULL,
+            review_text TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX (order_id),
+            INDEX (id_product),
+            INDEX (id_user)
+        )");
+    }
+}
+
+// Fetch reviewed orders
+$reviewed_orders = [];
+if ($koneksi) {
+    $q_review = mysqli_query($koneksi, "SELECT DISTINCT order_id FROM tabel_review WHERE id_user = '$id_user'");
+    if ($q_review) {
+        while ($r = mysqli_fetch_assoc($q_review)) {
+            $reviewed_orders[] = $r['order_id'];
+        }
+    }
+}
 // $koneksi->close(); // Connection kept open for fetching items in the loop below
 ?>
 <!DOCTYPE html>
