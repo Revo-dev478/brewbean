@@ -26,6 +26,9 @@ if ($koneksi) {
         while ($row = mysqli_fetch_assoc($result_keranjang)) {
             $subtotal_belanja += ($row['harga'] * $row['qty']);
             $total_qty += $row['qty'];
+            // Asumsi berat ada di tabel_product, fetch di query atas jika perlu. 
+            // Tapi query atas: SELECT k.qty, p.nama_product, p.harga, p.gambar
+            // Kita perlu ambil berat juga.
         }
     }
 } else {
@@ -33,11 +36,45 @@ if ($koneksi) {
     echo "<script>alert('Gagal terhubung ke database. Silakan coba lagi nanti.'); window.location='menu.php';</script>";
     exit();
 }
-// Default berat: 250g per item (karena kolom berat tidak ada di DB)
-$total_berat = $total_qty * 250;
-if ($total_berat == 0) $total_berat = 1000;
+// --- FETCH BERAT TOTAL RIIL ---
+$total_berat = 0;
+if ($koneksi) {
+    // Ambil berat per item dari tabel_product
+    $q_berat = mysqli_query($koneksi, "SELECT k.qty, p.berat FROM tabel_keranjang k JOIN tabel_product p ON k.id_product = p.id_product WHERE k.id_user = '$id_user'");
+    if ($q_berat) {
+        while ($b = mysqli_fetch_assoc($q_berat)) {
+            $berat_per_item = !empty($b['berat']) ? $b['berat'] : 20000; // Default 20kg if null
+            $total_berat += ($b['qty'] * $berat_per_item);
+        }
+    }
+}
 
-// Jika keranjang kosong, lempar balik ke menu
+// Default fallback jika 0 (misal error query)
+if ($total_berat == 0) $total_berat = $total_qty * 20000;
+
+// VALIDASI MINIMAL 20 KG (20000 gram)
+if ($total_berat < 20000) {
+    echo "<script>
+        Swal.fire({
+            icon: 'warning',
+            title: 'Minimal Pembelian 20 Kg',
+            text: 'Mohon maaf, minimal pembelian adalah 20 Kg. Total berat saat ini: " . ($total_berat / 1000) . " Kg.',
+            confirmButtonColor: '#c49b63'
+        }).then(() => {
+            window.location='menu.php';
+        });
+    </script>";
+    // Fallback alert standard jika Swal belum load (karena ini di header PHP)
+    // Trik: Gunakan echo script normal, tapi karena Swal ada di bawah <body>, kita sebaiknya redirect via JS simple dulu atau load library di sini?
+    // Lebih aman pakai simple alert dulu agar blocking.
+    echo "<script>
+        alert('Minimal pembelian adalah 20 Kg!\\nTotal belanja Anda: " . ($total_berat / 1000) . " Kg.'); 
+        window.location='menu.php';
+    </script>";
+    exit();
+}
+
+// Jika keranjang kosong
 if ($subtotal_belanja == 0) {
     echo "<script>alert('Keranjang Anda kosong!'); window.location='menu.php';</script>";
     exit();
