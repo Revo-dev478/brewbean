@@ -150,6 +150,7 @@ $syncCount = 0;
 // Copied logic from previous file to ensure auto-sync still works
 
 // AUTO-SYNC LOGIC (ON PAGE LOAD)
+$startTime = time();
 $syncQuery = false;
 if ($koneksi) {
     $syncQuery = mysqli_query($koneksi, "SELECT id_transaksi, order_id FROM transaksi_midtrans WHERE transaction_status IN ('pending', 'authorize', 'capture') ORDER BY transaction_time DESC LIMIT 10");
