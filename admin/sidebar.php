@@ -86,6 +86,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span>Menu Produk</span></a>
     </li>
 
+    <li class="nav-item <?= ($current_page == 'reviews.php') ? 'active' : '' ?>">
+        <a class="nav-link" href="reviews.php">
+            <i class="fas fa-fw fa-star"></i>
+            <span>Ulasan Produk</span></a>
+    </li>
+
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Transactions</div>
 

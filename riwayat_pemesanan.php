@@ -53,6 +53,15 @@ if ($koneksi) {
     }
 }
 
+// Fetch reviewed orders
+$reviewed_orders = [];
+if ($koneksi) {
+    $q_review = mysqli_query($koneksi, "SELECT DISTINCT order_id FROM tabel_review WHERE id_user = '$id_user'");
+    while ($r = mysqli_fetch_assoc($q_review)) {
+        $reviewed_orders[] = $r['order_id'];
+    }
+}
+
 // Set default delivery status if null in database
 foreach ($pesanan as &$p) {
     if (empty($p['delivery_status'])) {
@@ -360,10 +369,10 @@ unset($p);
                             } elseif ($delivery_status == 'shipped') {
                                 $badge_class = 'status-shipped';
                                 $status_text = 'Dikirim';
-                            } else {
-                                $badge_class = 'status-processing';
                                 $status_text = 'Diproses';
                             }
+
+                            $is_reviewed = in_array($item['order_id'], $reviewed_orders);
                             ?>
 
                             <div class="order-card">
@@ -483,8 +492,37 @@ unset($p);
                                         <?php endif; ?>
 
                                         <?php if ($delivery_status == 'confirmed'): ?>
-                                            <div class="mt-4 text-right" style="color: #c49b63; font-weight: 600;">
-                                                <span class="ion-ios-checkmark-circle mr-2"></span> Pesanan Selesai
+                                            <div class="mt-4 text-right">
+                                                <div style="color: #c49b63; font-weight: 600; margin-bottom: 10px;">
+                                                    <span class="ion-ios-checkmark-circle mr-2"></span> Pesanan Selesai
+                                                </div>
+
+                                                <?php if (!$is_reviewed): ?>
+                                                    <button class="btn btn-outline-warning btn-sm" onclick="openReviewModal('<?= $item['order_id'] ?>')">
+                                                        <span class="ion-ios-star"></span> Beri Ulasan
+                                                    </button>
+                                                    <!-- Hidden data for products in this order to populate modal -->
+                                                    <div id="products-<?= $item['order_id'] ?>" style="display:none;">
+                                                        <?php
+                                                        // Re-query items for this order to put in data attributes (since we are inside loop)
+                                                        if ($koneksi) {
+                                                            $oid_rev = mysqli_real_escape_string($koneksi, $item['order_id']);
+                                                            $q_rev_items = mysqli_query($koneksi, "SELECT ci.id_product, ci.product_name, p.gambar FROM checkout_item ci LEFT JOIN tabel_product p ON ci.id_product = p.id_product WHERE ci.order_id = '$oid_rev'");
+                                                            $rev_items = [];
+                                                            while ($ri = mysqli_fetch_assoc($q_rev_items)) {
+                                                                $rev_items[] = [
+                                                                    'id' => $ri['id_product'],
+                                                                    'name' => $ri['product_name'],
+                                                                    'image' => $ri['gambar']
+                                                                ];
+                                                            }
+                                                            echo json_encode($rev_items);
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span class="badge badge-warning p-2">Ulasan Terkirim</span>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -504,6 +542,32 @@ unset($p);
             </div>
         </div>
     </section>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" role="dialog" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="background: #1a1a1a; color: #fff; border: 1px solid #c49b63;">
+                <div class="modal-header" style="border-bottom: 1px solid #333;">
+                    <h5 class="modal-title" id="reviewModalLabel" style="color: #c49b63;">Beri Ulasan Produk</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="reviewForm">
+                        <input type="hidden" id="reviewOrderId" name="order_id">
+                        <div id="reviewProductsList">
+                            <!-- Product review items will be injected here -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #333;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReview()" style="background: #c49b63; border-color: #c49b63; color: #000;">Kirim Ulasan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="ftco-loader" class="show fullscreen">
         <svg class="circular" width="48px" height="48px">
@@ -529,6 +593,137 @@ unset($p);
     <script src="js/main.js"></script>
 
     <script>
+        function openReviewModal(orderId) {
+            $('#reviewOrderId').val(orderId);
+            const productsJson = $('#products-' + orderId).text();
+
+            try {
+                const products = JSON.parse(productsJson);
+                let html = '';
+
+                products.forEach((p, index) => {
+                    const imgUrl = p.image ? 'images/' + p.image : 'images/default_product.jpg'; // Fallback image
+                    html += `
+                        <div class="product-review-item mb-4 pb-3" style="border-bottom: 1px solid #333;">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="${imgUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                                <div style="font-weight: 600;">${p.name}</div>
+                            </div>
+                            
+                            <div class="rating-input mb-2">
+                                <label style="font-size: 12px; color: #aaa;">Rating:</label>
+                                <div class="rating-stars" data-index="${index}">
+                                    <i class="ion-ios-star-outline star-icon" data-val="1" style="font-size: 24px; cursor: pointer; color: #c49b63;"></i>
+                                    <i class="ion-ios-star-outline star-icon" data-val="2" style="font-size: 24px; cursor: pointer; color: #c49b63;"></i>
+                                    <i class="ion-ios-star-outline star-icon" data-val="3" style="font-size: 24px; cursor: pointer; color: #c49b63;"></i>
+                                    <i class="ion-ios-star-outline star-icon" data-val="4" style="font-size: 24px; cursor: pointer; color: #c49b63;"></i>
+                                    <i class="ion-ios-star-outline star-icon" data-val="5" style="font-size: 24px; cursor: pointer; color: #c49b63;"></i>
+                                </div>
+                                <input type="hidden" name="reviews[${index}][rating]" id="rating-${index}" class="rating-value">
+                                <input type="hidden" name="reviews[${index}][id_product]" value="${p.id}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <textarea class="form-control" name="reviews[${index}][review]" rows="2" placeholder="Tulis ulasan Anda..." style="background: #2a2a2a; border: 1px solid #444; color: #fff; font-size: 13px;"></textarea>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('#reviewProductsList').html(html);
+
+                // Init star click handlers
+                $('.star-icon').hover(function() {
+                    $(this).prevAll().addBack().removeClass('ion-ios-star-outline').addClass('ion-ios-star');
+                }, function() {
+                    if (!$(this).hasClass('selected')) {
+                        // Visual reset handled by click logic mainly, simple hover effect
+                        const index = $(this).parent().data('index');
+                        const currentVal = $('#rating-' + index).val();
+                        updateStars(index, currentVal);
+                    }
+                });
+
+                $('.star-icon').click(function() {
+                    const val = $(this).data('val');
+                    const index = $(this).parent().data('index');
+                    $('#rating-' + index).val(val);
+                    updateStars(index, val);
+                });
+
+                $('#reviewModal').modal('show');
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Gagal memuat data produk', 'error');
+            }
+        }
+
+        function updateStars(index, val) {
+            const container = $(`.rating-stars[data-index="${index}"]`);
+            container.find('.star-icon').each(function() {
+                const sVal = $(this).data('val');
+                if (sVal <= val) {
+                    $(this).removeClass('ion-ios-star-outline').addClass('ion-ios-star');
+                } else {
+                    $(this).removeClass('ion-ios-star').addClass('ion-ios-star-outline');
+                }
+            });
+        }
+
+        function submitReview() {
+            // Validate ratings
+            let valid = true;
+            $('.rating-value').each(function() {
+                if (!$(this).val()) valid = false;
+            });
+
+            if (!valid) {
+                Swal.fire('Peringatan', 'Mohon berikan rating bintang untuk semua produk.', 'warning');
+                return;
+            }
+
+            // Collect data
+            const orderId = $('#reviewOrderId').val();
+            const reviews = [];
+
+            $('#reviewProductsList .product-review-item').each(function(i) {
+                reviews.push({
+                    id_product: $(this).find('input[name^="reviews"][name$="[id_product]"]').val(),
+                    rating: $(this).find('input[name^="reviews"][name$="[rating]"]').val(),
+                    review: $(this).find('textarea').val()
+                });
+            });
+
+            $.ajax({
+                url: 'submit_review.php',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    order_id: orderId,
+                    reviews: reviews
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        $('#reviewModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Terima Kasih!',
+                            text: response.message,
+                            confirmButtonColor: '#c49b63'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Gagal', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
+                }
+            });
+        }
+
         function konfirmasiPesanan(orderId) {
             Swal.fire({
                 title: 'Konfirmasi Penerimaan?',
