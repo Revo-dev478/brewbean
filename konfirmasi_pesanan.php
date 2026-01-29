@@ -30,36 +30,45 @@ if (!$koneksi) {
 }
 
 // Cek ownership dan status
-$check = $koneksi->prepare("SELECT id_transaksi, delivery_status FROM transaksi_midtrans WHERE order_id = ? AND id_user = ?");
-$check->bind_param("si", $order_id, $id_user);
-$check->execute();
-$result = $check->get_result();
-$transaksi = $result->fetch_assoc();
-$check->close();
-
-if (!$transaksi) {
-    $koneksi->close();
-    echo json_encode(['success' => false, 'message' => 'Order not found or unauthorized']);
+$stmtCheck = $koneksi->prepare("SELECT id_transaksi, delivery_status, transaction_status FROM transaksi_midtrans WHERE order_id = ? AND id_user = ?");
+if (!$stmtCheck) {
+    echo json_encode(['success' => false, 'message' => 'Prepare check failed: ' . $koneksi->error]);
     exit;
 }
 
+$stmtCheck->bind_param("si", $order_id, $id_user);
+$stmtCheck->execute();
+$result = $stmtCheck->get_result();
+$transaksi = $result->fetch_assoc();
+$stmtCheck->close();
+
+if (!$transaksi) {
+    echo json_encode(['success' => false, 'message' => 'Pesanan tidak ditemukan atau Anda tidak berhak mengaksesnya.']);
+    exit;
+}
+
+// Treat NULL or empty status as 'processing' (matching riwayat_pemesanan.php display logic)
+$current_status = !empty($transaksi['delivery_status']) ? strtolower($transaksi['delivery_status']) : 'processing';
+
 // Cek apakah status valid untuk dikonfirmasi
-if (!in_array($transaksi['delivery_status'], ['processing', 'shipped', 'delivered'])) {
-    $koneksi->close();
-    echo json_encode(['success' => false, 'message' => 'Order status cannot be confirmed yet']);
+if (!in_array($current_status, ['processing', 'shipped', 'delivered'])) {
+    echo json_encode(['success' => false, 'message' => 'Status pesanan saat ini (' . $current_status . ') belum bisa dikonfirmasi.']);
     exit;
 }
 
 // Update status ke confirmed
 $update = $koneksi->prepare("UPDATE transaksi_midtrans SET delivery_status = 'confirmed', delivery_confirmed_at = NOW() WHERE order_id = ? AND id_user = ?");
+if (!$update) {
+    echo json_encode(['success' => false, 'message' => 'Prepare update failed: ' . $koneksi->error]);
+    exit;
+}
+
 $update->bind_param("si", $order_id, $id_user);
 
 if ($update->execute()) {
     $update->close();
-    $koneksi->close();
-    echo json_encode(['success' => true, 'message' => 'Order confirmed successfully']);
+    echo json_encode(['success' => true, 'message' => 'Pesanan berhasil dikonfirmasi. Terima kasih!']);
 } else {
     $update->close();
-    $koneksi->close();
-    echo json_encode(['success' => false, 'message' => 'Failed to update order status']);
+    echo json_encode(['success' => false, 'message' => 'Gagal memperbarui status: ' . $koneksi->error]);
 }

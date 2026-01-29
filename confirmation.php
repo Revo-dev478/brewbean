@@ -127,6 +127,39 @@ if (!empty($order_id)) {
     $icon = '⚠';
     $color = '#dc3545';
 }
+
+// ================= FETCH INVOICE DATA (Success Only) =================
+$invoice_data = null;
+$invoice_items = [];
+$customer_data = null;
+
+if ($status_type == 'success' && !empty($order_id) && $koneksi) {
+    // Fetch transaction data
+    $query_invoice = "SELECT t.*, u.username, u.email, u.phone
+                      FROM transaksi_midtrans t
+                      LEFT JOIN tabel_user u ON t.id_user = u.id_user
+                      WHERE t.order_id = '" . mysqli_real_escape_string($koneksi, $order_id) . "'";
+    $result_invoice = mysqli_query($koneksi, $query_invoice);
+
+    if ($result_invoice && mysqli_num_rows($result_invoice) > 0) {
+        $invoice_data = mysqli_fetch_assoc($result_invoice);
+
+        // Fetch items
+        $query_items = "SELECT * FROM checkout_item WHERE order_id = '" . mysqli_real_escape_string($koneksi, $order_id) . "'";
+        $result_items = mysqli_query($koneksi, $query_items);
+        if ($result_items) {
+            while ($row = mysqli_fetch_assoc($result_items)) {
+                $invoice_items[] = $row;
+            }
+        }
+
+        $customer_data = [
+            'username' => $invoice_data['username'],
+            'email' => $invoice_data['email'],
+            'phone' => $invoice_data['phone']
+        ];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -377,6 +410,128 @@ if (!empty($order_id)) {
             text-decoration: none;
         }
 
+        /* Invoice Section Styles */
+        .invoice-section {
+            background: #f8f5f1;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #efebe9;
+        }
+
+        .invoice-header-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #d7ccc8;
+        }
+
+        .invoice-title {
+            font-size: 14px;
+            color: #3e2723;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .invoice-number {
+            font-size: 11px;
+            color: #8d6e63;
+        }
+
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .invoice-item-name {
+            color: #5d4037;
+        }
+
+        .invoice-item-qty {
+            color: #8d6e63;
+            font-size: 11px;
+        }
+
+        .invoice-item-price {
+            color: #3e2723;
+            font-weight: 600;
+        }
+
+        .invoice-summary {
+            border-top: 1px dashed #d7ccc8;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .invoice-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #3e2723;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(196, 155, 99, 0.15);
+            border-radius: 8px;
+        }
+
+        .btn-invoice-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-invoice {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-invoice-download {
+            background: linear-gradient(135deg, #3e2723 0%, #5d4037 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-invoice-download:hover {
+            background: linear-gradient(135deg, #5d4037 0%, #6d4c41 100%);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        .btn-invoice-print {
+            background: transparent;
+            color: #5d4037;
+            border: 2px solid #c49b63;
+        }
+
+        .btn-invoice-print:hover {
+            background: #c49b63;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
         .coffee-icon {
             position: absolute;
             bottom: 20px;
@@ -497,6 +652,52 @@ if (!empty($order_id)) {
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($status_type == 'success' && $invoice_data && count($invoice_items) > 0): ?>
+                    <!-- Invoice Section -->
+                    <div class="invoice-section">
+                        <div class="invoice-header-mini">
+                            <span class="invoice-title">📄 Invoice</span>
+                            <span class="invoice-number">INV-<?php echo htmlspecialchars($order_id); ?></span>
+                        </div>
+
+                        <?php
+                        $subtotal_items = 0;
+                        foreach ($invoice_items as $item):
+                            $subtotal_items += $item['subtotal'];
+                        ?>
+                            <div class="invoice-item">
+                                <div>
+                                    <span class="invoice-item-name"><?php echo htmlspecialchars($item['product_name']); ?></span>
+                                    <span class="invoice-item-qty">(x<?php echo $item['quantity']; ?>)</span>
+                                </div>
+                                <span class="invoice-item-price">Rp <?php echo number_format($item['subtotal'], 0, ',', '.'); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+
+                        <div class="invoice-summary">
+                            <div class="invoice-item">
+                                <span class="invoice-item-name">Subtotal</span>
+                                <span class="invoice-item-price">Rp <?php echo number_format($subtotal_items, 0, ',', '.'); ?></span>
+                            </div>
+                            <div class="invoice-item">
+                                <span class="invoice-item-name">Ongkir</span>
+                                <span class="invoice-item-price">Rp <?php echo number_format($invoice_data['ongkir'] ?? 0, 0, ',', '.'); ?></span>
+                            </div>
+                            <div class="invoice-total">
+                                <span>Total</span>
+                                <span>Rp <?php echo number_format($invoice_data['gross_amount'], 0, ',', '.'); ?></span>
+                            </div>
+                        </div>
+
+                        <div class="btn-invoice-group">
+                            <a href="generate_invoice.php?order_id=<?php echo urlencode($order_id); ?>" target="_blank" class="btn-invoice btn-invoice-download" style="flex: 1;">
+                                📄 Lihat & Print Invoice
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
 
                 <div class="btn-group">
                     <?php if ($status_type == 'success'): ?>
