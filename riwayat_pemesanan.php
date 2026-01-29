@@ -391,6 +391,8 @@ if ($koneksi) {
                             } elseif ($delivery_status == 'shipped') {
                                 $badge_class = 'status-shipped';
                                 $status_text = 'Dikirim';
+                            } else {
+                                $badge_class = 'status-processing';
                                 $status_text = 'Diproses';
                             }
 
