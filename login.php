@@ -33,8 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_SESSION['username'] = 'Administrator';
       $_SESSION['is_admin'] = true;
 
-      // Redirect ke admin dashboard
-      header("Location: admin/index.php");
+      // Redirect ke admin dashboard atau halaman yang diminta
+      $target = ($redirect === 'utama.php') ? 'admin/index.php' : $redirect;
+      header("Location: " . $target);
       exit();
     }
     // ===================== END ADMIN CHECK =====================

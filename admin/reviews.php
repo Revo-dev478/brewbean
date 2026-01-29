@@ -4,7 +4,7 @@ include 'config.php';
 
 // Check if admin is logged in (simplified check based on existing files)
 if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
+    header("Location: ../login.php?redirect=admin/reviews.php");
     exit();
 }
 
