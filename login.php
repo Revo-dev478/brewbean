@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } else {
     // ===================== ADMIN LOGIN CHECK =====================
     // Cek apakah login sebagai admin (hardcoded credentials)
-    if ($email === 'admin' && $pass === 'admin') {
+    if (strtolower($email) === 'admin' && $pass === 'admin') {
       $_SESSION['id_user'] = 0; // Special admin ID
       $_SESSION['email'] = 'admin@brewbeans.com';
       $_SESSION['username'] = 'Administrator';

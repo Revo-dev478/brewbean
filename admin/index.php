@@ -1,6 +1,9 @@
-<?php
 session_start();
 include 'config.php';
+require_once '../auth.php'; // Helper auth
+
+// Pastikan yang akses adalah admin
+requireAdmin();
 
 // ===================== STATISTICS QUERIES =====================
 
@@ -17,141 +20,141 @@ $statusColors = [];
 $resultRecent = false;
 
 if ($koneksi) {
-    // Total Revenue (settlement only)
-    $queryRevenue = "SELECT COALESCE(SUM(gross_amount), 0) as total_revenue 
-                     FROM transaksi_midtrans 
-                     WHERE transaction_status = 'settlement'";
-    $resultRevenue = mysqli_query($koneksi, $queryRevenue);
-    if ($resultRevenue) {
-        $totalRevenue = mysqli_fetch_assoc($resultRevenue)['total_revenue'];
-    }
+// Total Revenue (settlement only)
+$queryRevenue = "SELECT COALESCE(SUM(gross_amount), 0) as total_revenue
+FROM transaksi_midtrans
+WHERE transaction_status = 'settlement'";
+$resultRevenue = mysqli_query($koneksi, $queryRevenue);
+if ($resultRevenue) {
+$totalRevenue = mysqli_fetch_assoc($resultRevenue)['total_revenue'];
+}
 
-    // Total Transactions
-    $queryTotalTrans = "SELECT COUNT(*) as total FROM transaksi_midtrans";
-    $resultTotalTrans = mysqli_query($koneksi, $queryTotalTrans);
-    if ($resultTotalTrans) {
-        $totalTransactions = mysqli_fetch_assoc($resultTotalTrans)['total'];
-    }
+// Total Transactions
+$queryTotalTrans = "SELECT COUNT(*) as total FROM transaksi_midtrans";
+$resultTotalTrans = mysqli_query($koneksi, $queryTotalTrans);
+if ($resultTotalTrans) {
+$totalTransactions = mysqli_fetch_assoc($resultTotalTrans)['total'];
+}
 
-    // Pending Transactions
-    $queryPending = "SELECT COUNT(*) as pending FROM transaksi_midtrans WHERE transaction_status = 'pending'";
-    $resultPending = mysqli_query($koneksi, $queryPending);
-    if ($resultPending) {
-        $pendingTransactions = mysqli_fetch_assoc($resultPending)['pending'];
-    }
+// Pending Transactions
+$queryPending = "SELECT COUNT(*) as pending FROM transaksi_midtrans WHERE transaction_status = 'pending'";
+$resultPending = mysqli_query($koneksi, $queryPending);
+if ($resultPending) {
+$pendingTransactions = mysqli_fetch_assoc($resultPending)['pending'];
+}
 
-    // Total Users
-    $queryUsers = "SELECT COUNT(*) as total FROM tabel_user";
-    $resultUsers = mysqli_query($koneksi, $queryUsers);
-    if ($resultUsers) {
-        $totalUsers = mysqli_fetch_assoc($resultUsers)['total'];
-    }
+// Total Users
+$queryUsers = "SELECT COUNT(*) as total FROM tabel_user";
+$resultUsers = mysqli_query($koneksi, $queryUsers);
+if ($resultUsers) {
+$totalUsers = mysqli_fetch_assoc($resultUsers)['total'];
+}
 
-    // Monthly Revenue for Chart (Last 6 months)
-    for ($i = 5; $i >= 0; $i--) {
-        $month = date('Y-m', strtotime("-$i months"));
-        $monthLabels[] = date('M Y', strtotime("-$i months"));
+// Monthly Revenue for Chart (Last 6 months)
+for ($i = 5; $i >= 0; $i--) {
+$month = date('Y-m', strtotime("-$i months"));
+$monthLabels[] = date('M Y', strtotime("-$i months"));
 
-        $queryMonthly = "SELECT COALESCE(SUM(gross_amount), 0) as revenue 
-                         FROM transaksi_midtrans 
-                         WHERE transaction_status = 'settlement' 
-                         AND DATE_FORMAT(transaction_time, '%Y-%m') = '$month'";
-        $resultMonthly = mysqli_query($koneksi, $queryMonthly);
-        if ($resultMonthly) {
-            $monthlyData[] = (float) mysqli_fetch_assoc($resultMonthly)['revenue'];
-        } else {
-            $monthlyData[] = 0;
-        }
-    }
-
-    // Transaction Status Distribution
-    $colorMap = [
-        'settlement' => '#28a745',
-        'pending' => '#ffc107',
-        'cancel' => '#dc3545',
-        'expire' => '#6c757d',
-        'deny' => '#e74c3c',
-        'failure' => '#c0392b'
-    ];
-
-    $queryStatus = "SELECT transaction_status, COUNT(*) as count FROM transaksi_midtrans GROUP BY transaction_status";
-    $resultStatus = mysqli_query($koneksi, $queryStatus);
-    if ($resultStatus) {
-        while ($row = mysqli_fetch_assoc($resultStatus)) {
-            $statusLabels[] = ucfirst($row['transaction_status']);
-            $statusData[] = (int) $row['count'];
-            $statusColors[] = isset($colorMap[$row['transaction_status']]) ? $colorMap[$row['transaction_status']] : '#999999';
-        }
-    }
-
-    // Recent Transactions
-    $queryRecent = "SELECT t.order_id, t.gross_amount, t.transaction_status, t.transaction_time, u.username 
-                    FROM transaksi_midtrans t 
-                    LEFT JOIN tabel_user u ON t.id_user = u.id_user 
-                    ORDER BY t.transaction_time DESC LIMIT 5";
-    $resultRecent = mysqli_query($koneksi, $queryRecent);
-
-    // ===================== DAILY, WEEKLY, MONTHLY EARNINGS =====================
-
-    // Today's Earnings
-    $today = date('Y-m-d');
-    $queryDaily = "SELECT COALESCE(SUM(gross_amount), 0) as daily_revenue, COUNT(*) as daily_count
-                   FROM transaksi_midtrans 
-                   WHERE transaction_status IN ('settlement', 'capture', 'success')
-                   AND DATE(transaction_time) = '$today'";
-    $resultDaily = mysqli_query($koneksi, $queryDaily);
-    $dailyData = $resultDaily ? mysqli_fetch_assoc($resultDaily) : ['daily_revenue' => 0, 'daily_count' => 0];
-    $dailyRevenue = $dailyData['daily_revenue'];
-    $dailyCount = $dailyData['daily_count'];
-
-    // This Week's Earnings (Monday to Sunday)
-    $weekStart = date('Y-m-d', strtotime('monday this week'));
-    $weekEnd = date('Y-m-d', strtotime('sunday this week'));
-    $queryWeekly = "SELECT COALESCE(SUM(gross_amount), 0) as weekly_revenue, COUNT(*) as weekly_count
-                    FROM transaksi_midtrans 
-                    WHERE transaction_status IN ('settlement', 'capture', 'success')
-                    AND DATE(transaction_time) BETWEEN '$weekStart' AND '$weekEnd'";
-    $resultWeekly = mysqli_query($koneksi, $queryWeekly);
-    $weeklyData = $resultWeekly ? mysqli_fetch_assoc($resultWeekly) : ['weekly_revenue' => 0, 'weekly_count' => 0];
-    $weeklyRevenue = $weeklyData['weekly_revenue'];
-    $weeklyCount = $weeklyData['weekly_count'];
-
-    // This Month's Earnings
-    $monthStart = date('Y-m-01');
-    $monthEnd = date('Y-m-t');
-    $queryMonthlyEarn = "SELECT COALESCE(SUM(gross_amount), 0) as monthly_revenue, COUNT(*) as monthly_count
-                         FROM transaksi_midtrans 
-                         WHERE transaction_status IN ('settlement', 'capture', 'success')
-                         AND DATE(transaction_time) BETWEEN '$monthStart' AND '$monthEnd'";
-    $resultMonthlyEarn = mysqli_query($koneksi, $queryMonthlyEarn);
-    $monthlyEarnData = $resultMonthlyEarn ? mysqli_fetch_assoc($resultMonthlyEarn) : ['monthly_revenue' => 0, 'monthly_count' => 0];
-    $monthlyRevenue = $monthlyEarnData['monthly_revenue'];
-    $monthlyCount = $monthlyEarnData['monthly_count'];
-
-    // Daily breakdown for the last 7 days (for chart)
-    $dailyLabels = [];
-    $dailyChartData = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $day = date('Y-m-d', strtotime("-$i days"));
-        $dailyLabels[] = date('d M', strtotime("-$i days"));
-
-        $qDay = "SELECT COALESCE(SUM(gross_amount), 0) as rev FROM transaksi_midtrans 
-                 WHERE transaction_status IN ('settlement', 'capture', 'success') AND DATE(transaction_time) = '$day'";
-        $rDay = mysqli_query($koneksi, $qDay);
-        $dailyChartData[] = $rDay ? (float)mysqli_fetch_assoc($rDay)['rev'] : 0;
-    }
+$queryMonthly = "SELECT COALESCE(SUM(gross_amount), 0) as revenue
+FROM transaksi_midtrans
+WHERE transaction_status = 'settlement'
+AND DATE_FORMAT(transaction_time, '%Y-%m') = '$month'";
+$resultMonthly = mysqli_query($koneksi, $queryMonthly);
+if ($resultMonthly) {
+$monthlyData[] = (float) mysqli_fetch_assoc($resultMonthly)['revenue'];
 } else {
-    // If DB is offline, defaults are already set to 0/empty.
-    // We could add an error message variable to display in the dashboard if desired.
-    $db_dashboard_error = "Database Connection Failed";
-    $dailyRevenue = 0;
-    $dailyCount = 0;
-    $weeklyRevenue = 0;
-    $weeklyCount = 0;
-    $monthlyRevenue = 0;
-    $monthlyCount = 0;
-    $dailyLabels = [];
-    $dailyChartData = [];
+$monthlyData[] = 0;
+}
+}
+
+// Transaction Status Distribution
+$colorMap = [
+'settlement' => '#28a745',
+'pending' => '#ffc107',
+'cancel' => '#dc3545',
+'expire' => '#6c757d',
+'deny' => '#e74c3c',
+'failure' => '#c0392b'
+];
+
+$queryStatus = "SELECT transaction_status, COUNT(*) as count FROM transaksi_midtrans GROUP BY transaction_status";
+$resultStatus = mysqli_query($koneksi, $queryStatus);
+if ($resultStatus) {
+while ($row = mysqli_fetch_assoc($resultStatus)) {
+$statusLabels[] = ucfirst($row['transaction_status']);
+$statusData[] = (int) $row['count'];
+$statusColors[] = isset($colorMap[$row['transaction_status']]) ? $colorMap[$row['transaction_status']] : '#999999';
+}
+}
+
+// Recent Transactions
+$queryRecent = "SELECT t.order_id, t.gross_amount, t.transaction_status, t.transaction_time, u.username
+FROM transaksi_midtrans t
+LEFT JOIN tabel_user u ON t.id_user = u.id_user
+ORDER BY t.transaction_time DESC LIMIT 5";
+$resultRecent = mysqli_query($koneksi, $queryRecent);
+
+// ===================== DAILY, WEEKLY, MONTHLY EARNINGS =====================
+
+// Today's Earnings
+$today = date('Y-m-d');
+$queryDaily = "SELECT COALESCE(SUM(gross_amount), 0) as daily_revenue, COUNT(*) as daily_count
+FROM transaksi_midtrans
+WHERE transaction_status IN ('settlement', 'capture', 'success')
+AND DATE(transaction_time) = '$today'";
+$resultDaily = mysqli_query($koneksi, $queryDaily);
+$dailyData = $resultDaily ? mysqli_fetch_assoc($resultDaily) : ['daily_revenue' => 0, 'daily_count' => 0];
+$dailyRevenue = $dailyData['daily_revenue'];
+$dailyCount = $dailyData['daily_count'];
+
+// This Week's Earnings (Monday to Sunday)
+$weekStart = date('Y-m-d', strtotime('monday this week'));
+$weekEnd = date('Y-m-d', strtotime('sunday this week'));
+$queryWeekly = "SELECT COALESCE(SUM(gross_amount), 0) as weekly_revenue, COUNT(*) as weekly_count
+FROM transaksi_midtrans
+WHERE transaction_status IN ('settlement', 'capture', 'success')
+AND DATE(transaction_time) BETWEEN '$weekStart' AND '$weekEnd'";
+$resultWeekly = mysqli_query($koneksi, $queryWeekly);
+$weeklyData = $resultWeekly ? mysqli_fetch_assoc($resultWeekly) : ['weekly_revenue' => 0, 'weekly_count' => 0];
+$weeklyRevenue = $weeklyData['weekly_revenue'];
+$weeklyCount = $weeklyData['weekly_count'];
+
+// This Month's Earnings
+$monthStart = date('Y-m-01');
+$monthEnd = date('Y-m-t');
+$queryMonthlyEarn = "SELECT COALESCE(SUM(gross_amount), 0) as monthly_revenue, COUNT(*) as monthly_count
+FROM transaksi_midtrans
+WHERE transaction_status IN ('settlement', 'capture', 'success')
+AND DATE(transaction_time) BETWEEN '$monthStart' AND '$monthEnd'";
+$resultMonthlyEarn = mysqli_query($koneksi, $queryMonthlyEarn);
+$monthlyEarnData = $resultMonthlyEarn ? mysqli_fetch_assoc($resultMonthlyEarn) : ['monthly_revenue' => 0, 'monthly_count' => 0];
+$monthlyRevenue = $monthlyEarnData['monthly_revenue'];
+$monthlyCount = $monthlyEarnData['monthly_count'];
+
+// Daily breakdown for the last 7 days (for chart)
+$dailyLabels = [];
+$dailyChartData = [];
+for ($i = 6; $i >= 0; $i--) {
+$day = date('Y-m-d', strtotime("-$i days"));
+$dailyLabels[] = date('d M', strtotime("-$i days"));
+
+$qDay = "SELECT COALESCE(SUM(gross_amount), 0) as rev FROM transaksi_midtrans
+WHERE transaction_status IN ('settlement', 'capture', 'success') AND DATE(transaction_time) = '$day'";
+$rDay = mysqli_query($koneksi, $qDay);
+$dailyChartData[] = $rDay ? (float)mysqli_fetch_assoc($rDay)['rev'] : 0;
+}
+} else {
+// If DB is offline, defaults are already set to 0/empty.
+// We could add an error message variable to display in the dashboard if desired.
+$db_dashboard_error = "Database Connection Failed";
+$dailyRevenue = 0;
+$dailyCount = 0;
+$weeklyRevenue = 0;
+$weeklyCount = 0;
+$monthlyRevenue = 0;
+$monthlyCount = 0;
+$dailyLabels = [];
+$dailyChartData = [];
 }
 ?>
 <!DOCTYPE html>
